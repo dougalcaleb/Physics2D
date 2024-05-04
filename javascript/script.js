@@ -1,9 +1,21 @@
-import Renderer from "./struct/render.js";
-import Engine from "./engine/engine.js";
-import Clock from "./engine/clock.js";
+import Point from "./struct/point.js";
+import Polygon from "./struct/polygon.js";
+import Store from "./engine/store.js";
+import { PolyType } from "./struct/enum.js";
+import Utils from "./engine/utils.js";
 
-const clock = new Clock();
-const engine = new Engine(clock);
-const renderer = new Renderer(clock);
+Store.init();
 
-clock.start();
+Store.addPolygon(new Polygon([
+	new Point(100, 100),
+	new Point(200, 100),
+	new Point(200, 200),
+	new Point(100, 200)
+], PolyType.DYNAMIC));
+
+Store.addPolygon(new Polygon([
+	new Point(25, window.innerHeight - 150),
+	new Point(200, window.innerHeight - 150),
+	new Point(25, window.innerHeight - 100),
+	new Point(200, window.innerHeight - 100)
+], PolyType.STATIC));
