@@ -14,6 +14,9 @@ export default class Store {
 	}
 	static sectorSize = null;
 
+	static GRAVITY = 9.8;
+	static SCALE = 1;
+
 	Clock = null;
 	Engine = null;
 	Renderer = null;
@@ -25,7 +28,9 @@ export default class Store {
 		this.Engine = new Engine(this.Clock);
 		this.Renderer = new Renderer(this.Clock);
 
-		this.Clock.start();
+		setTimeout(() => {
+			this.Clock.start();
+		}, 0);
 	}
 
 	static addPolygon(polygon) {

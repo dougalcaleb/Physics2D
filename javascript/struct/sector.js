@@ -4,6 +4,8 @@ export default class Sector {
 	height = null;
 	width = null;
 	children = {};
+	childList = [];
+	count = 0;
 
 	constructor(x, y, height, width) {
 		this.x = x;
@@ -13,10 +15,16 @@ export default class Sector {
 	}
 
 	removeChild(polyID) {
+		if (!this.children[polyID]) return;
 		delete this.children[polyID];
+		this.childList.filterInPlace(polygon => polygon.id !== polyID);
+		this.count--;
 	}
 	
 	addChild(polygon) {
+		if (this.children[polygon.id]) return;
 		this.children[polygon.id] = polygon;
+		this.childList.push(polygon);
+		this.count++;
 	}
 }

@@ -21,3 +21,9 @@ canvas {
   width: 100%;
   bottom: 0;
 }
+
+.debug-controls {
+  position: fixed;
+  right: 10px;
+  top: 10px;
+}

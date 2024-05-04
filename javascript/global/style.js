@@ -6,5 +6,10 @@ export default class Style {
 	static line = "#e8e8e8";
 	static lineWidth = 2;
 	static vertexSize = 3;
-	static debug = "#111111";
+	static debug = {
+		sector: "#111111",
+		force: "#ff0000",
+		velocity: "#00ff00",
+		acceleration: "#0000ff"
+	};
 }

@@ -1,12 +1,15 @@
 import Resolver from "../engine/resolver.js";
 import Utils from "../engine/utils.js";
 import Point from "./point.js";
+import Vector from "./vector.js";
+import Store from "../engine/store.js";
 import { PolyType } from "./enum.js";
 
 export default class Polygon {
 	vertices = [];
 	position = { x: 0, y: 0 };
 	velocity = { x: 0, y: 0 };
+	acceleration = { x: 0, y: 0 };
 	rotation = 0;
 	angularVelocity = 0;
 	mass = 1;
@@ -15,6 +18,9 @@ export default class Polygon {
 	maxSize = 0;
 	sector = null;
 	id = null;
+
+	_netForce = new Vector(0, 0);
+	_lastForce = new Vector(0, 0);
 
 	constructor(vertices, type = PolyType.DYNAMIC) {
 		const polyVerts = Polygon.createPolygon(vertices);
@@ -33,12 +39,26 @@ export default class Polygon {
 		this.id = Utils.UUID();
 	}
 	
-	addForce(magnitude, angle) {
-
+	addForce(forceVector) {
+		this._netForce.addInPlace(forceVector);
+		this._lastForce = forceVector;
 	}
 
 	addTorque(magnitude, direction) {
 
+	}
+
+	update(deltaTime) {
+		this.acceleration.x = (this._netForce.x / this.mass) * Store.SCALE;
+		this.acceleration.y = (this._netForce.y / this.mass) * Store.SCALE;
+		this.velocity.x += this.acceleration.x * deltaTime * Store.SCALE;
+		this.velocity.y += this.acceleration.y * deltaTime * Store.SCALE;
+		this.position.x += this.velocity.x * deltaTime * Store.SCALE;
+		this.position.y += this.velocity.y * deltaTime * Store.SCALE;
+
+		this.rotation += this.angularVelocity * deltaTime;
+		// console.log("Position:", this.position, "Velocity:", this.velocity, "Acceleration:", this.acceleration);
+		this._netForce.reset();
 	}
 
 	// Create a convex hull from a set of vertices (Andrew's Monotone Chain algorithm)
