@@ -1,0 +1,41 @@
+/*
+%name - reusable styles (used @extend %name)
+@mixin name - function (used @include name(param))
+$name - variable
+*/
+
+@import url('https://fonts.googleapis.com/css2?family=Miriam+Libre:wght@700&family=Montserrat:wght@500&family=Ubuntu&display=swap');
+
+%center {
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+%center-x {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: auto;
+}
+%center-y {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+$white: #e8e8e8;
+$blue-light: #00b7ff;
+$blue-dark: #006b8c;
+$black-light: #282828;
+$black-medium: #191919;
+$black-dark: #070707;
+$red: #b52626;
+
+$font-title: "Miriam Libre", "Segoe UI", sans-serif, monospace;
+$font-button: "Miriam Libre", "Segoe UI", sans-serif, monospace;
+$font-subtitle: "Montserrat";
+$font-paragraph: "Ubuntu", sans-serif;

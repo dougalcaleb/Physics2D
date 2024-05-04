@@ -1,0 +1,23 @@
+/*
+%name - reusable styles (used @extend %name)
+@mixin name - function (used @include name(param))
+$name - variable
+*/
+@import url("https://fonts.googleapis.com/css2?family=Miriam+Libre:wght@700&family=Montserrat:wght@500&family=Ubuntu&display=swap");
+* {
+  user-select: none;
+}
+
+body {
+  margin: 0;
+  overflow: hidden;
+}
+
+canvas {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  height: 100%;
+  width: 100%;
+  bottom: 0;
+}
