@@ -30,10 +30,10 @@ Store.init();
 // ], PolyType.DYNAMIC));
 
 Store.addPolygon(new Polygon([
+	new Point(200, 200),
 	new Point(300, 200),
-	new Point(400, 200),
-	new Point(300, 300),
-	new Point(400, 300)
+	new Point(150, 350),
+	new Point(350, 250)
 ], PolyType.DYNAMIC));
 
 // Store.addPolygon(new Polygon([
@@ -47,7 +47,7 @@ Store.addPolygon(new Polygon([
 	new Point(25, 150),
 	new Point(200, 150),
 	new Point(25, 100),
-	new Point(200,100)
+	new Point(200, 100)
 ], PolyType.STATIC));
 
 Store.polygons[0].addForce(new Vector(4, Math.PI / 2));

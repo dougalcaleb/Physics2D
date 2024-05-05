@@ -20,11 +20,11 @@ export default class Engine {
 	step(deltaTime) {
 		this.deltaTime = deltaTime;
 		const stepStart = performance.now();
+		this.addForces();
+		this.update();
 		this.partitionObjects();
 		this.collisionQueue();
 		this.resolveCollisions();
-		this.addForces();
-		this.update();
 		const stepEnd = performance.now();
 		// console.log("Step time: ", stepEnd - stepStart);
 	}
@@ -34,7 +34,7 @@ export default class Engine {
 	createSectors() {
 		// Find the cell size that will fit the largest polygon. 
 		// The canvas will be split into the smallest square that can fit the largest polygon, 
-		// where they fit perfectly on the x - axis and have a remainder at the bottom on the y - axis.
+		// where they fit perfectly on the x - axis and have a remainder at the top on the y - axis.
 		Store.clearSectors();
 		let size = Store.polygons.reduce((max, polygon) => {
 			return Math.max(max, polygon.maxSize);
@@ -84,6 +84,7 @@ export default class Engine {
 			} else {
 				polygon.sector = null;
 			}
+			// console.log("Polygon:", polygon.id, "Sector:", polygon.sector)
 		});
 	}
 
@@ -146,6 +147,7 @@ export default class Engine {
 	}
 
 	resolveCollisions() {
+		// console.log("Resolving:", this.collisions);
 		this.collisions.forEach(pair => {
 			Resolver.resolve(pair[0], pair[1]);
 		});

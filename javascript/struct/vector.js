@@ -3,10 +3,19 @@ export default class Vector {
 	#angle = null;
 	#x = null;
 	#y = null;
+	origin = { x: 0, y: 0};
 
-	constructor(magnitude, angle) {
-		this.#angle = angle;
-		this.magnitude = magnitude;
+	constructor(...args) {
+		if (args.length === 2) {
+			this.#angle = args[1];
+			this.magnitude = args[0];
+		} else if (args.length === 1) {
+			this.#x = args[0].x;
+			this.#y = args[0].y;
+			this.#magnitude = Math.sqrt(Math.pow(this.#x, 2) + Math.pow(this.#y, 2));
+			this.#angle = Math.atan2(this.#y, this.#x);
+			this.origin = args[0].origin || { x: 0, y: 0 };
+		}
 	}
 
 	get magnitude() { return this.#magnitude; }
@@ -65,6 +74,10 @@ export default class Vector {
 	}
 
 	dot(vector) {
-		return this.#x * vector.x + this.#y * vector.y;
+		return (this.#x * vector.x) + (this.#y * vector.y);
+	}
+
+	static dot(vector1, vector2) {
+		return (vector1.x * vector2.x) + (vector1.y * vector2.y);
 	}
 }

@@ -20,6 +20,8 @@ export default class Polygon {
 	sector = null;
 	id = null;
 
+	debugVectors = [];
+
 	_netForce = new Vector(0, 0);
 	_lastForce = new Vector(0, 0);
 

@@ -1,5 +1,6 @@
 import Style from "../global/style.js";
 import Store from "./store.js";
+import { PolyType } from "../struct/enum.js";
 
 export default class Renderer {
 	canvas = null;
@@ -34,7 +35,10 @@ export default class Renderer {
 		Object.values(Store.sectors).forEach(sector => {
 			this.ctx.strokeStyle = Style.debug.sector;
 			this.ctx.lineWidth = Style.lineWidth;
-			this.ctx.strokeRect(sector.x * sector.width, sector.y * sector.height, sector.width, sector.height);
+			this.ctx.strokeRect(sector.x * sector.width, this.canvas.height - sector.y * sector.height, sector.width, sector.height);
+			this.ctx.fillStyle = Style.debug.textDark;
+			this.ctx.font = "10px monospace";
+			this.ctx.fillText(sector.x + "-" + sector.y, sector.x * sector.width + 10, this.canvas.height - (sector.y * sector.height + 10));
 		});
 
 		Store.polygons.forEach(polygon => {
@@ -70,6 +74,19 @@ export default class Renderer {
 			this.ctx.moveTo(polygon.position.x, this.canvas.height - polygon.position.y);
 			this.ctx.lineTo(polygon.position.x + (polygon.acceleration.x * Store.SCALE), (this.canvas.height - (polygon.position.y + (polygon.acceleration.y * Store.SCALE))));
 			this.ctx.stroke();
+
+			this.ctx.fillStyle = Style.debug.text;
+			this.ctx.font = "12px monospace";
+			this.ctx.fillText(polygon.id, polygon.position.x, this.canvas.height - polygon.position.y);
+
+			// if (polygon.type === PolyType.STATIC) return;
+			polygon.debugVectors.forEach(vector => {
+				this.ctx.strokeStyle = this.ctx.strokeStyle = Style.debug.misc;
+				this.ctx.beginPath();
+				this.ctx.moveTo(polygon.position.x + vector.origin.x, this.canvas.height - (polygon.position.y + vector.origin.y));
+				this.ctx.lineTo(polygon.position.x + (vector.x * 100) + vector.origin.x, (this.canvas.height - (polygon.position.y + (vector.y * 100) + vector.origin.y)));
+				this.ctx.stroke();
+			});
 		});
 	}
 }
