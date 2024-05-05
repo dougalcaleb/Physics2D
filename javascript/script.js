@@ -52,25 +52,31 @@ Store.addPolygon(new Polygon([
 
 Store.polygons[0].addForce(new Vector(4, Math.PI / 2));
 
+// 170hz = 5.88ms
+// 60hz = 16.67ms
+
+// let frame = 0;
+// Store.Clock.subscribe(() => {
+// 	++frame;
+
+// 	if (frame === 23) {
+// 		Store.polygons[0].addForce(new Vector(4, Math.PI / 4));
+// 	}
+// 	if (frame === 60) {
+// 		Store.polygons[0].addForce(new Vector(8, (Math.PI / 8) + Math.PI / 2));
+// 	}
+// 	if (frame === 119) {
+// 		Store.polygons[0].addForce(new Vector(8, Math.PI / 4));
+// 	}
+// 	if (frame === 143) {
+// 		Store.polygons[0].addForce(new Vector(8, Math.PI - (Math.PI / 8)));
+// 	}
+// });
+
 
 
 document.querySelector("#debug-play").addEventListener("click", () => {
 	Store.Clock.resume();
-	setTimeout(() => {
-		Store.polygons[0].addForce(new Vector(4, Math.PI / 4));
-	}, 400);
-
-	setTimeout(() => {
-		Store.polygons[0].addForce(new Vector(10, (Math.PI / 8) + Math.PI / 2));
-	}, 1200);
-
-	setTimeout(() => {
-		Store.polygons[0].addForce(new Vector(8, Math.PI / 4));
-	}, 2000);
-
-	setTimeout(() => {
-		Store.polygons[0].addForce(new Vector(8, Math.PI - (Math.PI / 8)));
-	}, 2400);
 });
 document.querySelector("#debug-pause").addEventListener("click", () => {
 	Store.Clock.pause();

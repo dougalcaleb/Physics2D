@@ -7,10 +7,11 @@ import { PolyType } from "./enum.js";
 
 export default class Polygon {
 	vertices = [];
+	#originalVertices = [];
 	position = { x: 0, y: 0 };
 	velocity = { x: 0, y: 0 };
 	acceleration = { x: 0, y: 0 };
-	rotation = 0;
+	#rotation = 0;
 	angularVelocity = 0;
 	mass = 1;
 	type = null;
@@ -22,18 +23,30 @@ export default class Polygon {
 	_netForce = new Vector(0, 0);
 	_lastForce = new Vector(0, 0);
 
+	get rotation() { return this.#rotation; }
+	set rotation(value) {
+		this.#rotation = value;
+		this.vertices = this.#originalVertices.map(v => {
+			v.rotate(value);
+			return new Point(v);
+		});
+	}
+
 	constructor(vertices, type = PolyType.DYNAMIC) {
 		const polyVerts = Polygon.createPolygon(vertices);
+		polyVerts.pop();
 		this.position = new Point({
 			x: polyVerts.reduce((acc, v) => acc + v.x, 0) / polyVerts.length,
 			y: polyVerts.reduce((acc, v) => acc + v.y, 0) / polyVerts.length
 		});
-		this.vertices = polyVerts.map(v => {
+		this.vertices = polyVerts.map((v, index) => {
 			return new Point({
 				x: v.x - this.position.x,
-				y: v.y - this.position.y
+				y: v.y - this.position.y,
+				id: String(index)
 			});
 		});
+		this.#originalVertices = this.vertices.map(v => new Point(v));
 		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Utils.pointDistance({x: 0, y: 0}, v)), 0);
 		this.type = type;
 		this.id = Utils.UUID();
@@ -56,7 +69,7 @@ export default class Polygon {
 		this.position.x += this.velocity.x * deltaTime * Store.SCALE;
 		this.position.y += this.velocity.y * deltaTime * Store.SCALE;
 
-		this.rotation += this.angularVelocity * deltaTime;
+		this.rotation += this.angularVelocity * deltaTime + 0.001;
 		// console.log("Position:", this.position, "Velocity:", this.velocity, "Acceleration:", this.acceleration);
 		this._netForce.reset();
 	}

@@ -1,11 +1,13 @@
 export default class Point {
 	x = 0;
 	y = 0;
+	id = null;
 	
 	constructor(...args) {
 		if (args.length === 1) {
 			this.x = args[0].x;
 			this.y = args[0].y;
+			this.id = args[0].id || null;
 		} else if (args.length === 2) {
 			this.x = args[0];
 			this.y = args[1];
@@ -16,5 +18,12 @@ export default class Point {
 	
 	add(point) {
 		return new Point(this.x + point.x, this.y + point.y);
+	}
+
+	rotate(angle) {
+		const magnitude = Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+		const currentAngle = Math.atan2(this.y, this.x);
+		this.x = magnitude * Math.cos(currentAngle + angle);
+		this.y = magnitude * Math.sin(currentAngle + angle);
 	}
 }
