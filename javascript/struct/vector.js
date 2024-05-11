@@ -76,11 +76,28 @@ export default class Vector {
 		)
 	}
 
+	multiplyInPlace(scalar) {
+		this.#x *= scalar;
+		this.#y *= scalar;
+		this.#magnitude = Math.hypot(this.#x, this.#y);
+	}
+
+	multiply(scalar) {
+		return {
+			x: this.#x * scalar,
+			y: this.#y * scalar
+		}
+	}
+
 	dot(vector) {
 		return (this.#x * vector.x) + (this.#y * vector.y);
 	}
 
 	static dot(vector1, vector2) {
 		return (vector1.x * vector2.x) + (vector1.y * vector2.y);
+	}
+
+	static magnitude(vector) {
+		return Math.hypot(vector.x, vector.y);
 	}
 }

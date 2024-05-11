@@ -81,13 +81,19 @@ export default class Renderer {
 			this.ctx.fillText(polygon.id, polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
 
 			// if (polygon.type === PolyType.STATIC) return;
-			polygon.debugVectors.forEach(data => {
-				this.ctx.strokeStyle = this.ctx.strokeStyle = data.color;
-				this.ctx.beginPath();
-				this.ctx.moveTo(polygon.position.x + data.vector.origin.x, this.canvas.height - (polygon.position.y + data.vector.origin.y));
-				this.ctx.lineTo(polygon.position.x + (data.vector.x) + data.vector.origin.x, (this.canvas.height - (polygon.position.y + (data.vector.y) + data.vector.origin.y)));
-				this.ctx.stroke();
-			});
+			// polygon.debugVectors.forEach(data => {
+			// 	this.ctx.strokeStyle = this.ctx.strokeStyle = data.color;
+			// 	this.ctx.beginPath();
+			// 	this.ctx.moveTo(
+			// 		(polygon.position.x + data.vector.origin.x) * Store.SCALE,
+			// 		this.canvas.height - ((polygon.position.y + data.vector.origin.y) * Store.SCALE)
+			// 	);
+			// 	this.ctx.lineTo(
+			// 		(polygon.position.x + data.vector.origin.x) * Store.SCALE + (data.vector.x * Store.SCALE * DEBUG_SCALE),
+			// 		this.canvas.height - ((polygon.position.y + data.vector.origin.y) * Store.SCALE) - (data.vector.y * Store.SCALE * DEBUG_SCALE)
+			// 	);
+			// 	this.ctx.stroke();
+			// });
 		});
 	}
 }

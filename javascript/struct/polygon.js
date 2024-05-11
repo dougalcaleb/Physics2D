@@ -14,6 +14,7 @@ export default class Polygon {
 	#rotation = 0;
 	angularVelocity = 0;
 	mass = 1;
+	restitution = 1;
 	type = null;
 	active = true;
 	maxSize = 0;
@@ -48,9 +49,11 @@ export default class Polygon {
 		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Point.distance({x: 0, y: 0}, v)), 0);
 		this.type = options.type;
 		this.id = Utils.UUID();
+		this.mass = this.type === PolyType.DYNAMIC ? (options.mass || 1) : Infinity;
+		this.rotation = options.rotation || 0;
 
 		//? debug
-		this.angularVelocity = Math.PI;
+		// this.angularVelocity = -Math.PI;
 	}
 	
 	addForce(forceVector) {
@@ -72,6 +75,10 @@ export default class Polygon {
 		this.rotation += this.angularVelocity * deltaTime;
 		
 		this._netForce.reset();
+	}
+
+	setVelocity(velocity) {
+		this.velocity = velocity;
 	}
 
 	resolve(resolution) {

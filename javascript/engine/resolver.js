@@ -25,7 +25,6 @@ export default class Resolver {
 				x: -(vertex.y - polygon1.vertices[index + 1].y),
 				y: (vertex.x - polygon1.vertices[index + 1].x)
 			});
-			polygon1.debugVectors.push({ vector: normal, color: "#eb34ab" });
 
 			const offset = Vector.dot({
 				x: polygon1.position.x - polygon2.position.x,
@@ -46,12 +45,11 @@ export default class Resolver {
 
 		polygon2.vertices.forEach((vertex, index) => {
 			if (index === polygon2.vertices.length - 1) index = -1;
-			
+
 			const normal = new Vector({
 				x: -(vertex.y - polygon2.vertices[index + 1].y),
 				y: (vertex.x - polygon2.vertices[index + 1].x)
 			});
-			polygon2.debugVectors.push({ vector: normal, color: "#eb34ab" });
 
 			const offset = Vector.dot({
 				x: polygon1.position.x - polygon2.position.x,
@@ -71,6 +69,26 @@ export default class Resolver {
 		});
 		
 		if (collision) {
+			// Calculate resulting velocities
+			// Primarily from https://chrishecker.com/Rigid_Body_Dynamics#:~:text=Physics%2C%20Part%203%3A%20Collision%20Response
+			const relativeVelocity = new Vector({
+				x: polygon1.velocity.x - polygon2.velocity.x,
+				y: polygon1.velocity.y - polygon2.velocity.y
+			});
+			relativeVelocity.multiplyInPlace(-(1 + (polygon1.restitution * polygon2.restitution)));
+			const impulse = Vector.dot(relativeVelocity, overlapNormal) / Vector.dot(overlapNormal, overlapNormal.multiply(1 / polygon1.mass + 1 / polygon2.mass));
+			const velocities = {
+				polygon1: {
+					x: polygon1.velocity.x + overlapNormal.multiply(impulse / polygon1.mass).x,
+					y: polygon1.velocity.y + overlapNormal.multiply(impulse / polygon1.mass).y
+				},
+				polygon2: {
+					x: polygon2.velocity.x - overlapNormal.multiply(impulse / polygon2.mass).x,
+					y: polygon2.velocity.y - overlapNormal.multiply(impulse / polygon2.mass).y
+				}
+			};
+
+			// Correct the penetration
 			const resolutionMagnitude = overlap / Math.hypot(overlapNormal.x, overlapNormal.y);
 			overlapNormal.magnitude = 1;
 			if (polygon1.type === PolyType.STATIC) {
@@ -85,7 +103,8 @@ export default class Resolver {
 				resolution.polygon2.x = -overlapNormal.x * resolutionMagnitude / 2;
 				resolution.polygon2.y = -overlapNormal.y * resolutionMagnitude / 2;
 			}
-			return resolution;
+
+			return {resolution, velocities};
 		}
 		return false;
 	}

@@ -149,10 +149,13 @@ export default class Engine {
 
 	resolveCollisions() {
 		this.collisions.forEach(pair => {
-			const resolution = Resolver.resolve(pair[0], pair[1]);
+			const { resolution, velocities } = Resolver.resolve(pair[0], pair[1]);
 			if (resolution) {
 				pair[0].resolve(resolution.polygon1);
 				pair[1].resolve(resolution.polygon2);
+				console.log("velocities:", velocities);
+				pair[0].setVelocity(velocities.polygon1);
+				pair[1].setVelocity(velocities.polygon2);
 			}
 		});
 		this.collisions = [];

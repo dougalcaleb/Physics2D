@@ -24,24 +24,70 @@ Store.init();
 
 Store.addPolygon(new Polygon({
 	vertices: [
+		new Point(1, 1),
+		new Point(1, -1),
+		new Point(-1, 1),
+		new Point(-1, -1)
+	],
+	type: PolyType.DYNAMIC,
+	position: new Point(6, 14),
+	rotation: 1.2
+}));
+
+// Store.addPolygon(new Polygon({
+// 	vertices: [
+// 		new Point(0.8, 1.4),
+// 		new Point(0.4, -1.1),
+// 		new Point(-1, 1),
+// 		new Point(-2, -0.2)
+// 	],
+// 	type: PolyType.DYNAMIC,
+// 	position: new Point(4, 10.5)
+// }));
+
+Store.addPolygon(new Polygon({
+	vertices: [
 		new Point(0.8, 1.4),
 		new Point(0.4, -1.1),
 		new Point(-1, 1),
 		new Point(-2, -0.2)
 	],
 	type: PolyType.DYNAMIC,
-	position: new Point(4, 10.5)
+	position: new Point(25, 5)
 }));
 
 Store.addPolygon(new Polygon({
 	vertices: [
-		new Point(1.5, 0.5),
-		new Point(1.5, -0.5),
+		new Point(4, 0.5),
+		new Point(4, -0.5),
 		new Point(-1.5, 0.5),
 		new Point(-1.5, -0.5)
 	],
 	type: PolyType.STATIC,
 	position: new Point(2, 2)
+}));
+
+Store.addPolygon(new Polygon({
+	vertices: [
+		new Point(4, 0.5),
+		new Point(4, -0.5),
+		new Point(-1.5, 0.5),
+		new Point(-1.5, -0.5)
+	],
+	type: PolyType.STATIC,
+	position: new Point(25, 2)
+}));
+
+Store.addPolygon(new Polygon({
+	vertices: [
+		new Point(0.8, 1.4),
+		new Point(0.4, -1.1),
+		new Point(-1, 1),
+		new Point(-2, -0.2)
+	],
+	type: PolyType.DYNAMIC,
+	position: new Point(26, 25),
+	rotation: Math.PI + 1.2
 }));
 
 
