@@ -4,10 +4,10 @@ import { PolyType } from "../struct/enum.js";
 
 export default class Resolver {
 	constructor() { }
-	
+
+	// Resolve collision by SAT
+	// Return the positions of the objects and the forces to apply
 	static resolve(polygon1, polygon2) {
-		// Resolve collision by SAT
-		// Return the positions of the objects and the forces to apply
 		polygon1.debugVectors = [];
 		polygon2.debugVectors = [];
 		let collision = true;
@@ -20,15 +20,11 @@ export default class Resolver {
 
 		polygon1.vertices.forEach((vertex, index) => {
 			if (index === polygon1.vertices.length - 1) index = -1;
+
 			const normal = new Vector({
-				x: (polygon1.vertices[index + 1].y - vertex.y),
-				y: -(polygon1.vertices[index + 1].x - vertex.x),
-				origin: {
-					x: (polygon1.vertices[index + 1].x + vertex.x) / 2,
-					y: (polygon1.vertices[index + 1].y + vertex.y) / 2
-				}
+				x: -(vertex.y - polygon1.vertices[index + 1].y),
+				y: (vertex.x - polygon1.vertices[index + 1].x)
 			});
-			normal.magnitude = 1;
 			polygon1.debugVectors.push({ vector: normal, color: "#eb34ab" });
 
 			const offset = Vector.dot({
@@ -50,15 +46,11 @@ export default class Resolver {
 
 		polygon2.vertices.forEach((vertex, index) => {
 			if (index === polygon2.vertices.length - 1) index = -1;
+			
 			const normal = new Vector({
-				x: (polygon2.vertices[index + 1].y - vertex.y),
-				y: -(polygon2.vertices[index + 1].x - vertex.x),
-				origin: {
-					x: (polygon2.vertices[index + 1].x + vertex.x) / 2,
-					y: (polygon2.vertices[index + 1].y + vertex.y) / 2
-				}
+				x: -(vertex.y - polygon2.vertices[index + 1].y),
+				y: (vertex.x - polygon2.vertices[index + 1].x)
 			});
-			normal.magnitude = 1;
 			polygon2.debugVectors.push({ vector: normal, color: "#eb34ab" });
 
 			const offset = Vector.dot({
@@ -77,25 +69,22 @@ export default class Resolver {
 				}
 			}
 		});
-		// TODO: Resolve collision
-		// polygon2.debugVectors.push({ vector: overlapNormal, color: "#fcba03" });
-		// console.log("Collision:", collision, "Overlap:", overlap, "Overlap Normal:", overlapNormal);
-
-		if (polygon1.type === PolyType.STATIC) {
-			resolution.polygon2.x = -overlapNormal.x * overlap;
-			resolution.polygon2.y = -overlapNormal.y * overlap;
-		} else if (polygon2.type === PolyType.STATIC) {
-			resolution.polygon1.x = -overlapNormal.x * overlap;
-			resolution.polygon1.y = -overlapNormal.y * overlap;
-		} else {
-			resolution.polygon1.x = overlapNormal.x * overlap / 2;
-			resolution.polygon1.y = overlapNormal.y * overlap / 2;
-			resolution.polygon2.x = -overlapNormal.x * overlap / 2;
-			resolution.polygon2.y = -overlapNormal.y * overlap / 2;
-		}
-
+		
 		if (collision) {
-			console.log("Resolution:", resolution);
+			const resolutionMagnitude = overlap / Math.hypot(overlapNormal.x, overlapNormal.y);
+			overlapNormal.magnitude = 1;
+			if (polygon1.type === PolyType.STATIC) {
+				resolution.polygon2.x = -overlapNormal.x * resolutionMagnitude;
+				resolution.polygon2.y = -overlapNormal.y * resolutionMagnitude;
+			} else if (polygon2.type === PolyType.STATIC) {
+				resolution.polygon1.x = -overlapNormal.x * resolutionMagnitude;
+				resolution.polygon1.y = -overlapNormal.y * resolutionMagnitude;
+			} else {
+				resolution.polygon1.x = overlapNormal.x * resolutionMagnitude / 2;
+				resolution.polygon1.y = overlapNormal.y * resolutionMagnitude / 2;
+				resolution.polygon2.x = -overlapNormal.x * resolutionMagnitude / 2;
+				resolution.polygon2.y = -overlapNormal.y * resolutionMagnitude / 2;
+			}
 			return resolution;
 		}
 		return false;

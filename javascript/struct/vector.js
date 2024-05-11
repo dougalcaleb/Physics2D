@@ -12,7 +12,7 @@ export default class Vector {
 		} else if (args.length === 1) {
 			this.#x = args[0].x;
 			this.#y = args[0].y;
-			this.#magnitude = Math.sqrt(Math.pow(this.#x, 2) + Math.pow(this.#y, 2));
+			this.#magnitude = Math.hypot(this.#x, this.#y);
 			this.#angle = Math.atan2(this.#y, this.#x);
 			this.origin = args[0].origin || { x: 0, y: 0 };
 		} else {
@@ -30,14 +30,14 @@ export default class Vector {
 	get x() { return this.#x; }
 	set x(value) {
 		this.#x = value;
-		this.#magnitude = Math.sqrt(Math.pow(this.#x, 2) + Math.pow(this.#y, 2));
+		this.#magnitude = Math.hypot(this.#x, this.#y);
 		this.#angle = Math.atan2(this.#y, this.#x);
 	}
 
 	get y() { return this.#y; }
 	set y(value) {
 		this.#y = value;
-		this.magnitude = Math.sqrt(Math.pow(this.#x, 2) + Math.pow(this.#y, 2));
+		this.magnitude = Math.hypot(this.#x, this.#y);
 		this.#angle = Math.atan2(this.#y, this.#x);
 	}
 
@@ -50,7 +50,7 @@ export default class Vector {
 
 	add(vector) {
 		return new Vector(
-			Math.sqrt(Math.pow(this.#x + vector.x, 2) + Math.pow(this.#y + vector.y, 2)),
+			Math.hypot(this.#x + vector.x, this.#y + vector.y),
 			Math.atan2(this.#y + vector.y, this.#x + vector.x)
 		)
 	}
@@ -58,7 +58,7 @@ export default class Vector {
 	addInPlace(vector) {
 		this.#x += vector.x;
 		this.#y += vector.y;
-		this.#magnitude = Math.sqrt(Math.pow(this.#x, 2) + Math.pow(this.#y, 2));
+		this.#magnitude = Math.hypot(this.#x, this.#y);
 		this.#angle = Math.atan2(this.#y, this.#x);
 	}
 
@@ -71,7 +71,7 @@ export default class Vector {
 
 	divide(scalar) {
 		return new Vector(
-			Math.sqrt(Math.pow(this.#x / scalar, 2) + Math.pow(this.#y / scalar, 2)),
+			Math.hypot(this.#x / scalar, this.#y / scalar),
 			Math.atan2(this.#y / scalar, this.#x / scalar)
 		)
 	}

@@ -30,7 +30,7 @@ Store.addPolygon(new Polygon({
 		new Point(-2, -0.2)
 	],
 	type: PolyType.DYNAMIC,
-	position: new Point(4, 11)
+	position: new Point(4, 10.5)
 }));
 
 Store.addPolygon(new Polygon({
