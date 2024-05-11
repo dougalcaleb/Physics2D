@@ -3,14 +3,6 @@ export default class Utils {
 	static __uuidIterator = Utils.#uuidGen();
 
 	constructor() { }
-	
-	static pointDistance(point1, point2) {
-		return Math.sqrt(Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2));
-	}
-
-	static pointDistanceSqr(point1, point2) {
-		return Math.pow(point2.x - point1.x, 2) + Math.pow(point2.y - point1.y, 2);
-	}
 
 	// unused for now
 	static Round(value, places) {

@@ -15,6 +15,7 @@ export default class Store {
 	static sectorSize = null;
 
 	static GRAVITY = 9.8;
+	// Scale is the number of pixels per meter
 	static SCALE = 1;
 
 	Clock = null;

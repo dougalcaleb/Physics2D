@@ -28,30 +28,29 @@ export default class Polygon {
 	get rotation() { return this.#rotation; }
 	set rotation(value) {
 		this.#rotation = value;
-		this.vertices = this.#originalVertices.map(v => {
-			v.rotate(value);
-			return new Point(v);
+		this.#originalVertices.forEach((v, i) => {
+			this.vertices[i].set(v.rotate(value));
 		});
 	}
 
-	constructor(vertices, type = PolyType.DYNAMIC) {
-		const polyVerts = Polygon.createPolygon(vertices);
+	/**
+	 * Create a new polygon
+	 * @param {Object} options.vertices - An array of points representing the vertices of the polygon
+	 * @param {Object} options.position - The position of the polygon
+	 * @param {PolyType} options.type - The type of polygon (static or dynamic)
+	 */
+	constructor(options) {
+		const polyVerts = Polygon.createPolygon(options.vertices);
 		polyVerts.pop();
-		this.position = new Point({
-			x: polyVerts.reduce((acc, v) => acc + v.x, 0) / polyVerts.length,
-			y: polyVerts.reduce((acc, v) => acc + v.y, 0) / polyVerts.length
-		});
-		this.vertices = polyVerts.map((v, index) => {
-			return new Point({
-				x: v.x - this.position.x,
-				y: v.y - this.position.y,
-				id: String(index)
-			});
-		});
+		this.position = options.position;
+		this.vertices = polyVerts.map(v => new Point(v));
 		this.#originalVertices = this.vertices.map(v => new Point(v));
-		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Utils.pointDistance({x: 0, y: 0}, v)), 0);
-		this.type = type;
+		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Point.distance({x: 0, y: 0}, v)), 0);
+		this.type = options.type;
 		this.id = Utils.UUID();
+
+		//? debug
+		this.angularVelocity = Math.PI;
 	}
 	
 	addForce(forceVector) {
@@ -64,16 +63,20 @@ export default class Polygon {
 	}
 
 	update(deltaTime) {
-		this.acceleration.x = (this._netForce.x / this.mass) * Store.SCALE;
-		this.acceleration.y = (this._netForce.y / this.mass) * Store.SCALE;
-		this.velocity.x += this.acceleration.x * deltaTime * Store.SCALE;
-		this.velocity.y += this.acceleration.y * deltaTime * Store.SCALE;
-		this.position.x += this.velocity.x * deltaTime * Store.SCALE;
-		this.position.y += this.velocity.y * deltaTime * Store.SCALE;
-
-		this.rotation += this.angularVelocity * deltaTime + 0.001;
-		// console.log("Position:", this.position, "Velocity:", this.velocity, "Acceleration:", this.acceleration);
+		this.acceleration.x = (this._netForce.x / this.mass);
+		this.acceleration.y = (this._netForce.y / this.mass);
+		this.velocity.x += this.acceleration.x * deltaTime;
+		this.velocity.y += this.acceleration.y * deltaTime;
+		this.position.x += this.velocity.x * deltaTime;
+		this.position.y += this.velocity.y * deltaTime;
+		this.rotation += this.angularVelocity * deltaTime;
+		
 		this._netForce.reset();
+	}
+
+	resolve(resolution) {
+		this.position.x += resolution.x;
+		this.position.y += resolution.y;
 	}
 
 	// Create a convex hull from a set of vertices (Andrew's Monotone Chain algorithm)

@@ -7,6 +7,9 @@ import Vector from "../struct/vector.js";
 export default class Engine {
 	collisions = [];
 	deltaTime = 0;
+	stepDelta = 0;
+
+	#stepStart = 0;
 
 	constructor(clock) {
 		this.step = this.step.bind(this);
@@ -18,15 +21,14 @@ export default class Engine {
 	}
 	
 	step(deltaTime) {
+		this.#stepStart = performance.now();
 		this.deltaTime = deltaTime;
-		const stepStart = performance.now();
 		this.addForces();
 		this.update();
 		this.partitionObjects();
 		this.collisionQueue();
 		this.resolveCollisions();
-		const stepEnd = performance.now();
-		// console.log("Step time: ", stepEnd - stepStart);
+		this.stepDelta = performance.now() - this.#stepStart;
 	}
 
 	// Create spatial partitioning sectors to aid in broad-phase pruning
@@ -40,9 +42,9 @@ export default class Engine {
 			return Math.max(max, polygon.maxSize);
 		}, 0);
 		size *= 2;
-		const cellCountX = Math.ceil(window.innerWidth / size);
-		const cellCountY = Math.ceil(window.innerHeight / size) + 1;
-		const cellSize = window.innerWidth / cellCountX;
+		const cellCountX = Math.ceil(window.innerWidth / (size * Store.SCALE));
+		const cellCountY = Math.ceil(window.innerHeight / (size * Store.SCALE)) + 1;
+		const cellSize = (window.innerWidth / cellCountX / Store.SCALE);
 		Store.setSectorSize(cellSize);
 		Store.setSectorCount(cellCountX, cellCountY);
 		for (let x = 0; x < cellCountX; x++) {
@@ -84,7 +86,6 @@ export default class Engine {
 			} else {
 				polygon.sector = null;
 			}
-			// console.log("Polygon:", polygon.id, "Sector:", polygon.sector)
 		});
 	}
 
@@ -147,16 +148,19 @@ export default class Engine {
 	}
 
 	resolveCollisions() {
-		// console.log("Resolving:", this.collisions);
 		this.collisions.forEach(pair => {
-			Resolver.resolve(pair[0], pair[1]);
+			const resolution = Resolver.resolve(pair[0], pair[1]);
+			if (resolution) {
+				pair[0].resolve(resolution.polygon1);
+				pair[1].resolve(resolution.polygon2);
+			}
 		});
 		this.collisions = [];
 	}
 
 	addForces() {
 		Store.dynamicPolygons.forEach(polygon => {
-			polygon.addForce(new Vector(polygon.mass * Store.GRAVITY * this.deltaTime, Angle.DOWN));
+			polygon.addForce(new Vector(polygon.mass * Store.GRAVITY, Angle.DOWN));
 		});
 	}
 

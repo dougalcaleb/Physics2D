@@ -1,5 +1,6 @@
 import Vector from "../struct/vector.js";
 import Point from "../struct/point.js";
+import { PolyType } from "../struct/enum.js";
 
 export default class Resolver {
 	constructor() { }
@@ -28,7 +29,7 @@ export default class Resolver {
 				}
 			});
 			normal.magnitude = 1;
-			polygon1.debugVectors.push(normal);
+			polygon1.debugVectors.push({ vector: normal, color: "#eb34ab" });
 
 			const offset = Vector.dot({
 				x: polygon1.position.x - polygon2.position.x,
@@ -58,7 +59,7 @@ export default class Resolver {
 				}
 			});
 			normal.magnitude = 1;
-			polygon2.debugVectors.push(normal);
+			polygon2.debugVectors.push({ vector: normal, color: "#eb34ab" });
 
 			const offset = Vector.dot({
 				x: polygon1.position.x - polygon2.position.x,
@@ -77,7 +78,27 @@ export default class Resolver {
 			}
 		});
 		// TODO: Resolve collision
-		console.log("Collision:", collision, "Overlap:", overlap, "Overlap Normal:", overlapNormal);
+		// polygon2.debugVectors.push({ vector: overlapNormal, color: "#fcba03" });
+		// console.log("Collision:", collision, "Overlap:", overlap, "Overlap Normal:", overlapNormal);
+
+		if (polygon1.type === PolyType.STATIC) {
+			resolution.polygon2.x = -overlapNormal.x * overlap;
+			resolution.polygon2.y = -overlapNormal.y * overlap;
+		} else if (polygon2.type === PolyType.STATIC) {
+			resolution.polygon1.x = -overlapNormal.x * overlap;
+			resolution.polygon1.y = -overlapNormal.y * overlap;
+		} else {
+			resolution.polygon1.x = overlapNormal.x * overlap / 2;
+			resolution.polygon1.y = overlapNormal.y * overlap / 2;
+			resolution.polygon2.x = -overlapNormal.x * overlap / 2;
+			resolution.polygon2.y = -overlapNormal.y * overlap / 2;
+		}
+
+		if (collision) {
+			console.log("Resolution:", resolution);
+			return resolution;
+		}
+		return false;
 	}
 
 	static addForce(magnitude, angle) { 

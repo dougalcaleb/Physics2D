@@ -15,6 +15,8 @@ export default class Vector {
 			this.#magnitude = Math.sqrt(Math.pow(this.#x, 2) + Math.pow(this.#y, 2));
 			this.#angle = Math.atan2(this.#y, this.#x);
 			this.origin = args[0].origin || { x: 0, y: 0 };
+		} else {
+			throw new Error("Invalid number of arguments");
 		}
 	}
 
@@ -22,6 +24,7 @@ export default class Vector {
 	set magnitude(value) {
 		this.#x = value * Math.cos(this.#angle);
 		this.#y = value * Math.sin(this.#angle);
+		this.#magnitude = value;
 	}
 
 	get x() { return this.#x; }

@@ -18,62 +18,34 @@ Array.prototype.filterInPlace = function (filter) {
 	}
 };
 
-Store.SCALE = 30;
+Store.SCALE = 60;
 
 Store.init();
 
-// Store.addPolygon(new Polygon([
-// 	new Point(100, 100),
-// 	new Point(200, 100),
-// 	new Point(200, 200),
-// 	new Point(100, 200)
-// ], PolyType.DYNAMIC));
+Store.addPolygon(new Polygon({
+	vertices: [
+		new Point(0.8, 1.4),
+		new Point(0.4, -1.1),
+		new Point(-1, 1),
+		new Point(-2, -0.2)
+	],
+	type: PolyType.DYNAMIC,
+	position: new Point(4, 11)
+}));
 
-Store.addPolygon(new Polygon([
-	new Point(200, 200),
-	new Point(300, 200),
-	new Point(150, 350),
-	new Point(350, 250)
-], PolyType.DYNAMIC));
+Store.addPolygon(new Polygon({
+	vertices: [
+		new Point(1.5, 0.5),
+		new Point(1.5, -0.5),
+		new Point(-1.5, 0.5),
+		new Point(-1.5, -0.5)
+	],
+	type: PolyType.STATIC,
+	position: new Point(2, 2)
+}));
 
-// Store.addPolygon(new Polygon([
-// 	new Point(300, 800),
-// 	new Point(400, 800),
-// 	new Point(300, 900),
-// 	new Point(400, 900)
-// ], PolyType.DYNAMIC));
-
-Store.addPolygon(new Polygon([
-	new Point(25, 150),
-	new Point(200, 150),
-	new Point(25, 100),
-	new Point(200, 100)
-], PolyType.STATIC));
 
 Store.polygons[0].addForce(new Vector(4, Math.PI / 2));
-
-// 170hz = 5.88ms
-// 60hz = 16.67ms
-
-// let frame = 0;
-// Store.Clock.subscribe(() => {
-// 	++frame;
-
-// 	if (frame === 23) {
-// 		Store.polygons[0].addForce(new Vector(4, Math.PI / 4));
-// 	}
-// 	if (frame === 60) {
-// 		Store.polygons[0].addForce(new Vector(8, (Math.PI / 8) + Math.PI / 2));
-// 	}
-// 	if (frame === 119) {
-// 		Store.polygons[0].addForce(new Vector(8, Math.PI / 4));
-// 	}
-// 	if (frame === 143) {
-// 		Store.polygons[0].addForce(new Vector(8, Math.PI - (Math.PI / 8)));
-// 	}
-// });
-
-
 
 document.querySelector("#debug-play").addEventListener("click", () => {
 	Store.Clock.resume();
@@ -88,4 +60,3 @@ document.querySelector("#debug-step").addEventListener("click", () => {
 
 Store.Renderer.render();
 Store.Clock.pause();
-console.log(Store.sectors);

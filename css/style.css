@@ -27,3 +27,7 @@ canvas {
   right: 10px;
   top: 10px;
 }
+.debug-controls p {
+  font-family: monospace;
+  color: white;
+}
