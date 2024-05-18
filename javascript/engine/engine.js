@@ -1,7 +1,7 @@
 import Resolver from "./resolver.js";
 import Store from "./store.js";
 import Sector from "../struct/sector.js";
-import { Angle } from "../struct/enum.js";
+import { Angle, PolyType } from "../struct/enum.js";
 import Vector from "../struct/vector.js";
 
 export default class Engine {
@@ -149,11 +149,13 @@ export default class Engine {
 
 	resolveCollisions() {
 		this.collisions.forEach(pair => {
+			if (pair[0].type === PolyType.STATIC && pair[1].type === PolyType.STATIC) return;
+
 			const { resolution, velocities } = Resolver.resolve(pair[0], pair[1]);
 			if (resolution) {
 				pair[0].resolve(resolution.polygon1);
 				pair[1].resolve(resolution.polygon2);
-				console.log("velocities:", velocities);
+				// console.log("velocities:", velocities);
 				pair[0].setVelocity(velocities.polygon1);
 				pair[1].setVelocity(velocities.polygon2);
 			}

@@ -95,5 +95,14 @@ export default class Renderer {
 			// 	this.ctx.stroke();
 			// });
 		});
+
+		Store._debugPts.forEach((pt) => {
+			this.ctx.fillStyle = pt.color;
+			this.ctx.beginPath();
+			this.ctx.arc(pt.x * Store.SCALE, this.canvas.height - (pt.y * Store.SCALE), pt.size || 5, 0, 2 * Math.PI);
+			this.ctx.fill();
+		});
+
+		Store._debugPts = [];
 	}
 }
