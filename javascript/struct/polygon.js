@@ -7,7 +7,6 @@ import { PolyType } from "./enum.js";
 
 export default class Polygon {
 	vertices = [];
-	#originalVertices = [];
 	position = { x: 0, y: 0 };
 	velocity = { x: 0, y: 0 };
 	acceleration = { x: 0, y: 0 };
@@ -21,11 +20,15 @@ export default class Polygon {
 	maxSize = 0;
 	sector = null;
 	id = null;
-
+	
 	debugVectors = [];
 
+
+	_vertexCount = 0;	
 	_netForce = new Vector(0, 0);
 	_lastForce = new Vector(0, 0);
+
+	#originalVertices = [];
 
 	get rotation() { return this.#rotation; }
 	set rotation(value) {
@@ -45,7 +48,7 @@ export default class Polygon {
 		const polyVerts = Polygon.createPolygon(options.vertices);
 		polyVerts.pop();
 		this.position = options.position;
-		this.vertices = polyVerts.map((v, i) => new Point({ ...v, id: String(i) }));
+		this.vertices = polyVerts.map((v, i) => new Point({ ...v, id: i }));
 		this.#originalVertices = this.vertices.map(v => new Point(v));
 		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Point.distance({x: 0, y: 0}, v)), 0);
 		this.type = options.type;
@@ -54,6 +57,8 @@ export default class Polygon {
 		this.rotation = options.rotation || 0;
 		const pointMass = this.mass / this.vertices.length;
 		this.momentInertia = options.momentInertia || this.vertices.reduce((acc, v) => (acc + pointMass * (Point.distance(v, { x: 0, y: 0 }) ** 2)), 0);
+		this.restitution = options.restitution || 1;
+		this._vertexCount = this.vertices.length;
 	}
 	
 	addForce(forceVector) {
@@ -79,6 +84,10 @@ export default class Polygon {
 
 	setVelocity(velocity) {
 		this.velocity = velocity;
+	}
+
+	setAngularVelocity(angularVelocity) {
+		this.angularVelocity = angularVelocity;
 	}
 
 	resolve(resolution) {

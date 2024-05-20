@@ -31,6 +31,7 @@ Store.addPolygon(new Polygon({
 	],
 	type: PolyType.DYNAMIC,
 	position: new Point(6, 14),
+	restitution: 0.5
 	// rotation: 1.2
 }));
 
@@ -45,16 +46,16 @@ Store.addPolygon(new Polygon({
 // 	position: new Point(4, 10.5)
 // }));
 
-Store.addPolygon(new Polygon({
-	vertices: [
-		new Point(0.8, 1.4),
-		new Point(0.4, -1.1),
-		new Point(-1, 1),
-		new Point(-2, -0.2)
-	],
-	type: PolyType.DYNAMIC,
-	position: new Point(25, 5)
-}));
+// Store.addPolygon(new Polygon({
+// 	vertices: [
+// 		new Point(0.8, 1.4),
+// 		new Point(0.4, -1.1),
+// 		new Point(-1, 1),
+// 		new Point(-2, -0.2)
+// 	],
+// 	type: PolyType.DYNAMIC,
+// 	position: new Point(25, 5)
+// }));
 
 // Store.addPolygon(new Polygon({
 // 	vertices: [
@@ -89,6 +90,17 @@ Store.addPolygon(new Polygon({
 	],
 	type: PolyType.STATIC,
 	position: new Point(2, 2)
+}));
+
+Store.addPolygon(new Polygon({
+	vertices: [
+		new Point(10, 0.5),
+		new Point(10, -0.5),
+		new Point(-1, 0.5),
+		new Point(-1, -0.5)
+	],
+	type: PolyType.STATIC,
+	position: new Point(15, 8.5)
 }));
 
 Store.addPolygon(new Polygon({
@@ -149,6 +161,19 @@ document.querySelector("#debug-step").addEventListener("click", () => {
 	Store.Clock.pausedAt += (1000 / 60);
 	Store.Clock.step(Store.Clock.pausedAt, false);
 });
+document.addEventListener("keydown", (event) => {
+	if (event.code === "Insert") {
+		Store.Clock.pausedAt += (1000 / 60);
+		Store.Clock.step(Store.Clock.pausedAt, false);
+	} else if (event.code === "Space") {
+		if (Store.Clock.paused) {
+			Store.Clock.resume();
+		} else {
+			Store.Clock.pause();
+		}
+	}
+});
+
 
 Store.Renderer.render();
 Store.Clock.pause();

@@ -49,36 +49,39 @@ export default class Renderer {
 			const start = polygon.vertices[0].add(polygon.position);
 			this.ctx.moveTo(start.x * Store.SCALE, this.canvas.height - (start.y * Store.SCALE));
 			polygon.vertices.forEach((vertex, index) => {
+				const pos = vertex.add(polygon.position);
 				if (index > 0) {
-					const pos = vertex.add(polygon.position);
 					this.ctx.lineTo(pos.x * Store.SCALE, this.canvas.height - (pos.y * Store.SCALE));
 				}
+				// this.ctx.fillStyle = "orange";
+				// this.ctx.font = "12px monospace";
+				// this.ctx.fillText(vertex.id, pos.x * Store.SCALE, this.canvas.height - (pos.y * Store.SCALE));
 			});
 			this.ctx.closePath();
 			this.ctx.stroke();
 
 			// RED: Last force   GREEN: Velocity   BLUE: Acceleration
-			this.ctx.strokeStyle = Style.debug.force;
-			this.ctx.beginPath();
-			this.ctx.moveTo(polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
-			this.ctx.lineTo(polygon.position.x * Store.SCALE + (polygon._lastForce.x * Store.SCALE * DEBUG_SCALE), (this.canvas.height - (polygon.position.y * Store.SCALE + (polygon._lastForce.y * Store.SCALE * DEBUG_SCALE))));
-			this.ctx.stroke();
+			// this.ctx.strokeStyle = Style.debug.force;
+			// this.ctx.beginPath();
+			// this.ctx.moveTo(polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
+			// this.ctx.lineTo(polygon.position.x * Store.SCALE + (polygon._lastForce.x * Store.SCALE * DEBUG_SCALE), (this.canvas.height - (polygon.position.y * Store.SCALE + (polygon._lastForce.y * Store.SCALE * DEBUG_SCALE))));
+			// this.ctx.stroke();
 
-			this.ctx.strokeStyle = Style.debug.velocity;
-			this.ctx.beginPath();
-			this.ctx.moveTo(polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
-			this.ctx.lineTo(polygon.position.x * Store.SCALE + (polygon.velocity.x * Store.SCALE * DEBUG_SCALE), (this.canvas.height - (polygon.position.y * Store.SCALE + (polygon.velocity.y * Store.SCALE * DEBUG_SCALE))));
-			this.ctx.stroke();
+			// this.ctx.strokeStyle = Style.debug.velocity;
+			// this.ctx.beginPath();
+			// this.ctx.moveTo(polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
+			// this.ctx.lineTo(polygon.position.x * Store.SCALE + (polygon.velocity.x * Store.SCALE * DEBUG_SCALE), (this.canvas.height - (polygon.position.y * Store.SCALE + (polygon.velocity.y * Store.SCALE * DEBUG_SCALE))));
+			// this.ctx.stroke();
 
-			this.ctx.strokeStyle = Style.debug.acceleration;
-			this.ctx.beginPath();
-			this.ctx.moveTo(polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
-			this.ctx.lineTo(polygon.position.x * Store.SCALE + (polygon.acceleration.x * Store.SCALE * DEBUG_SCALE), (this.canvas.height - (polygon.position.y * Store.SCALE + (polygon.acceleration.y * Store.SCALE * DEBUG_SCALE))));
-			this.ctx.stroke();
+			// this.ctx.strokeStyle = Style.debug.acceleration;
+			// this.ctx.beginPath();
+			// this.ctx.moveTo(polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
+			// this.ctx.lineTo(polygon.position.x * Store.SCALE + (polygon.acceleration.x * Store.SCALE * DEBUG_SCALE), (this.canvas.height - (polygon.position.y * Store.SCALE + (polygon.acceleration.y * Store.SCALE * DEBUG_SCALE))));
+			// this.ctx.stroke();
 
-			this.ctx.fillStyle = Style.debug.text;
-			this.ctx.font = "12px monospace";
-			this.ctx.fillText(polygon.id, polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
+			// this.ctx.fillStyle = Style.debug.text;
+			// this.ctx.font = "12px monospace";
+			// this.ctx.fillText(polygon.id, polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
 
 			// if (polygon.type === PolyType.STATIC) return;
 			// polygon.debugVectors.forEach(data => {
@@ -103,6 +106,15 @@ export default class Renderer {
 			this.ctx.fill();
 		});
 
+		Store._debugVectors.forEach((data) => {
+			this.ctx.strokeStyle = data.color;
+			this.ctx.beginPath();
+			this.ctx.moveTo(data.origin.x * Store.SCALE, this.canvas.height - (data.origin.y * Store.SCALE));
+			this.ctx.lineTo(data.origin.x * Store.SCALE + (data.x * Store.SCALE), this.canvas.height - (data.origin.y * Store.SCALE + (data.y * Store.SCALE)));
+			this.ctx.stroke();
+		});
+
 		Store._debugPts = [];
+		Store._debugVectors = [];
 	}
 }

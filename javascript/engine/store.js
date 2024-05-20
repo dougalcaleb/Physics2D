@@ -18,6 +18,7 @@ export default class Store {
 	static SCALE = 1;		// Pixels that equal 1 meter
 
 	static _debugPts = [];
+	static _debugVectors = [];
 
 	Clock = null;
 	Engine = null;

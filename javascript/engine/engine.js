@@ -151,13 +151,16 @@ export default class Engine {
 		this.collisions.forEach(pair => {
 			if (pair[0].type === PolyType.STATIC && pair[1].type === PolyType.STATIC) return;
 
-			const { resolution, velocities } = Resolver.resolve(pair[0], pair[1]);
+			const { resolution, linearVelocities, angularVelocities } = Resolver.resolve(pair[0], pair[1]);
 			if (resolution) {
 				pair[0].resolve(resolution.polygon1);
 				pair[1].resolve(resolution.polygon2);
 				// console.log("velocities:", velocities);
-				pair[0].setVelocity(velocities.polygon1);
-				pair[1].setVelocity(velocities.polygon2);
+				pair[0].setVelocity(linearVelocities.polygon1);
+				pair[1].setVelocity(linearVelocities.polygon2);
+
+				pair[0].setAngularVelocity(angularVelocities.polygon1);
+				pair[1].setAngularVelocity(angularVelocities.polygon2);
 			}
 		});
 		this.collisions = [];

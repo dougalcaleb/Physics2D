@@ -12,8 +12,10 @@ export default class Vector {
 		} else if (args.length === 1) {
 			this.#x = args[0].x;
 			this.#y = args[0].y;
-			this.#magnitude = Math.hypot(this.#x, this.#y);
-			this.#angle = Math.atan2(this.#y, this.#x);
+			if (args[0].magnitude !== null) {
+				this.#magnitude = Math.hypot(this.#x, this.#y);
+				this.#angle = Math.atan2(this.#y, this.#x);
+			}
 			this.origin = args[0].origin || { x: 0, y: 0 };
 		} else {
 			throw new Error("Invalid number of arguments");
@@ -76,13 +78,13 @@ export default class Vector {
 		)
 	}
 
-	multiplyInPlace(scalar) {
+	scaleInPlace(scalar) {
 		this.#x *= scalar;
 		this.#y *= scalar;
 		this.#magnitude = Math.hypot(this.#x, this.#y);
 	}
 
-	multiply(scalar) {
+	scale(scalar) {
 		return {
 			x: this.#x * scalar,
 			y: this.#y * scalar

@@ -7,7 +7,7 @@ export default class Point {
 		if (args.length === 1) {
 			this.x = args[0].x;
 			this.y = args[0].y;
-			this.id = args[0].id || null;
+			this.id = args[0].id ?? null;
 		} else if (args.length === 2) {
 			this.x = args[0];
 			this.y = args[1];
@@ -47,5 +47,9 @@ export default class Point {
 
 	static distance(point1, point2) {
 		return Math.sqrt(Point.distanceSqr(point1, point2));
+	}
+
+	static subtract(point1, point2) {
+		return new Point(point1.x - point2.x, point1.y - point2.y);
 	}
 }
