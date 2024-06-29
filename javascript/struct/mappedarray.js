@@ -66,4 +66,8 @@ export default class MappedArray {
 	getIndex(id) {
 		return this.#idxMap[id];
 	}
+
+	reduce(callback, initialValue) {
+		return this.#collection.reduce(callback, initialValue);
+	}
 }
