@@ -46,7 +46,7 @@ export default class Renderer {
 			this.ctx.strokeStyle = Style.line;
 			this.ctx.lineWidth = Style.lineWidth;
 			this.ctx.beginPath();
-			const start = polygon.vertices[0].add(polygon.position);
+			const start = polygon.vertices.getAt(0).add(polygon.position);
 			this.ctx.moveTo(start.x * Store.SCALE, this.canvas.height - (start.y * Store.SCALE));
 			polygon.vertices.forEach((vertex, index) => {
 				const pos = vertex.add(polygon.position);

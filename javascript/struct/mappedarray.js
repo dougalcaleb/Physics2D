@@ -9,9 +9,10 @@ export default class MappedArray {
 	constructor(arr = [], idProp = "id", optimizeRemove = false) {
 		this.#idProp = idProp;
 		arr.forEach((obj, idx) => {
-			this.#collection.push(obj, idx);
+			this.#collection.push(obj);
 			this.#idxMap[obj[idProp]] = idx;
 		});
+		this.#length = arr.length;
 	}
 
 	removeAt(index) {
@@ -39,6 +40,10 @@ export default class MappedArray {
 	get(id) {
 		const index = this.#idxMap[id];
 		if (index === undefined) return undefined;
+		return this.#collection[index];
+	}
+
+	getAt(index) {
 		return this.#collection[index];
 	}
 	

@@ -1,9 +1,8 @@
-import Resolver from "../engine/resolver.js";
 import Utils from "../engine/utils.js";
 import Point from "./point.js";
 import Vector from "./vector.js";
-import Store from "../engine/store.js";
 import { PolyType } from "./enum.js";
+import MappedArray from "./mappedarray.js";
 
 export default class Polygon {
 	vertices = [];
@@ -12,6 +11,7 @@ export default class Polygon {
 	acceleration = { x: 0, y: 0 };
 	#rotation = 0;
 	angularVelocity = 0;
+	angularDrag = 0;
 	mass = 1;
 	restitution = 1;
 	momentInertia = 1;
@@ -34,7 +34,7 @@ export default class Polygon {
 	set rotation(value) {
 		this.#rotation = value;
 		this.#originalVertices.forEach((v, i) => {
-			this.vertices[i].set(v.rotate(value));
+			this.vertices.getAt(i).set(v.rotate(value));
 		});
 	}
 
@@ -48,7 +48,7 @@ export default class Polygon {
 		const polyVerts = Polygon.createPolygon(options.vertices);
 		polyVerts.pop();
 		this.position = options.position;
-		this.vertices = polyVerts.map((v, i) => new Point({ ...v, id: i }));
+		this.vertices = new MappedArray(polyVerts.map((v, i) => new Point({ ...v, id: i })));
 		this.#originalVertices = this.vertices.map(v => new Point(v));
 		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Point.distance({x: 0, y: 0}, v)), 0);
 		this.type = options.type;
@@ -58,11 +58,12 @@ export default class Polygon {
 		const pointMass = this.mass / this.vertices.length;
 		this.momentInertia = options.momentInertia || this.vertices.reduce((acc, v) => (acc + pointMass * (Point.distance(v, { x: 0, y: 0 }) ** 2)), 0);
 		this.restitution = options.restitution || 1;
+		this.angularDrag = options.angularDrag || 1;
 		this._vertexCount = this.vertices.length;
 	}
 	
 	addForce(forceVector) {
-		this._netForce.addInPlace(forceVector);
+		this._netForce._add(forceVector);
 		this._lastForce = forceVector;
 	}
 
@@ -78,6 +79,7 @@ export default class Polygon {
 		this.position.x += this.velocity.x * deltaTime;
 		this.position.y += this.velocity.y * deltaTime;
 		this.rotation += this.angularVelocity * deltaTime;
+		this.angularVelocity -= this.angularDrag * this.angularVelocity * deltaTime;
 		
 		this._netForce.reset();
 	}

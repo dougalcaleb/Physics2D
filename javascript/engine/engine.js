@@ -155,7 +155,7 @@ export default class Engine {
 			if (resolution) {
 				pair[0].resolve(resolution.polygon1);
 				pair[1].resolve(resolution.polygon2);
-				// console.log("velocities:", velocities);
+				
 				pair[0].setVelocity(linearVelocities.polygon1);
 				pair[1].setVelocity(linearVelocities.polygon2);
 
