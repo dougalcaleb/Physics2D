@@ -6,7 +6,7 @@ import MappedArray from "./mappedarray.js";
 
 export default class Polygon {
 	vertices = [];
-	position = { x: 0, y: 0 };
+	position = new Point({ x: 0, y: 0 });
 	velocity = { x: 0, y: 0 };
 	acceleration = { x: 0, y: 0 };
 	#rotation = 0;
@@ -47,7 +47,7 @@ export default class Polygon {
 	constructor(options) {
 		const polyVerts = Polygon.createPolygon(options.vertices);
 		polyVerts.pop();
-		this.position = options.position;
+		this.position = new Point(options.position);
 		this.vertices = new MappedArray(polyVerts.map((v, i) => new Point({ ...v, id: i })));
 		this.#originalVertices = this.vertices.map(v => new Point(v));
 		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Point.distance({x: 0, y: 0}, v)), 0);
@@ -76,8 +76,7 @@ export default class Polygon {
 		this.acceleration.y = (this._netForce.y / this.mass);
 		this.velocity.x += this.acceleration.x * deltaTime;
 		this.velocity.y += this.acceleration.y * deltaTime;
-		this.position.x += this.velocity.x * deltaTime;
-		this.position.y += this.velocity.y * deltaTime;
+		this.position._add({ x: this.velocity.x * deltaTime, y: this.velocity.y * deltaTime });
 		this.rotation += this.angularVelocity * deltaTime;
 		this.angularVelocity -= this.angularDrag * this.angularVelocity * deltaTime;
 		
@@ -93,8 +92,7 @@ export default class Polygon {
 	}
 
 	resolve(resolution) {
-		this.position.x += resolution.x;
-		this.position.y += resolution.y;
+		this.position._add(resolution);
 	}
 
 	// Create a convex hull from a set of vertices (Andrew's Monotone Chain algorithm)

@@ -1,6 +1,5 @@
 import Style from "../global/style.js";
 import Store from "./store.js";
-import { PolyType } from "../struct/enum.js";
 
 export default class Renderer {
 	canvas = null;
@@ -40,7 +39,22 @@ export default class Renderer {
 			this.ctx.font = "10px monospace";
 			this.ctx.fillText(sector.x + "-" + sector.y, (sector.x * sector.width * Store.SCALE) + 10, this.canvas.height - ((sector.y * sector.height * Store.SCALE) + 10));
 		});
-		const DEBUG_SCALE = 0.15;
+		
+		// Draw a reference scale in the upper left (10m, 1m, 0.5m)
+		this.ctx.strokeStyle = Style.debug.scale;
+		this.ctx.lineWidth = Style.lineWidth;
+		this.ctx.beginPath();
+		this.ctx.moveTo(10, 10);
+		this.ctx.lineTo(10 * Store.SCALE, 10);
+		this.ctx.stroke();
+		this.ctx.beginPath();
+		this.ctx.moveTo(10, 20);
+		this.ctx.lineTo(Store.SCALE + 10, 20);
+		this.ctx.stroke();
+		this.ctx.beginPath();
+		this.ctx.moveTo(10, 30);
+		this.ctx.lineTo(0.5 * Store.SCALE + 10, 30);
+		this.ctx.stroke();
 
 		Store.polygons.forEach(polygon => {
 			this.ctx.strokeStyle = Style.line;
@@ -61,23 +75,9 @@ export default class Renderer {
 			this.ctx.stroke();
 
 			// RED: Last force   GREEN: Velocity   BLUE: Acceleration
-			// this.ctx.strokeStyle = Style.debug.force;
-			// this.ctx.beginPath();
-			// this.ctx.moveTo(polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
-			// this.ctx.lineTo(polygon.position.x * Store.SCALE + (polygon._lastForce.x * Store.SCALE * DEBUG_SCALE), (this.canvas.height - (polygon.position.y * Store.SCALE + (polygon._lastForce.y * Store.SCALE * DEBUG_SCALE))));
-			// this.ctx.stroke();
-
-			// this.ctx.strokeStyle = Style.debug.velocity;
-			// this.ctx.beginPath();
-			// this.ctx.moveTo(polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
-			// this.ctx.lineTo(polygon.position.x * Store.SCALE + (polygon.velocity.x * Store.SCALE * DEBUG_SCALE), (this.canvas.height - (polygon.position.y * Store.SCALE + (polygon.velocity.y * Store.SCALE * DEBUG_SCALE))));
-			// this.ctx.stroke();
-
-			// this.ctx.strokeStyle = Style.debug.acceleration;
-			// this.ctx.beginPath();
-			// this.ctx.moveTo(polygon.position.x * Store.SCALE, this.canvas.height - (polygon.position.y * Store.SCALE));
-			// this.ctx.lineTo(polygon.position.x * Store.SCALE + (polygon.acceleration.x * Store.SCALE * DEBUG_SCALE), (this.canvas.height - (polygon.position.y * Store.SCALE + (polygon.acceleration.y * Store.SCALE * DEBUG_SCALE))));
-			// this.ctx.stroke();
+			// this.drawVector(polygon.position, polygon.position.add(polygon._lastForce), Style.debug.force);
+			// this.drawVector(polygon.position, polygon.position.add(polygon.velocity), Style.debug.velocity);
+			// this.drawVector(polygon.position, polygon.position.add(polygon.acceleration), Style.debug.acceleration);
 
 			// this.ctx.fillStyle = Style.debug.text;
 			// this.ctx.font = "12px monospace";
@@ -102,19 +102,71 @@ export default class Renderer {
 		Store._debugPts.forEach((pt) => {
 			this.ctx.fillStyle = pt.color;
 			this.ctx.beginPath();
-			this.ctx.arc(pt.x * Store.SCALE, this.canvas.height - (pt.y * Store.SCALE), pt.size || 5, 0, 2 * Math.PI);
+			if (!pt.shape) {
+				this.ctx.arc(pt.x * Store.SCALE, this.canvas.height - (pt.y * Store.SCALE), pt.size || 5, 0, 2 * Math.PI);
+			} else if (pt.shape === "rect") {
+				this.ctx.rect(pt.x * Store.SCALE, this.canvas.height - (pt.y * Store.SCALE), pt.size, pt.size);
+			}
 			this.ctx.fill();
 		});
 
-		Store._debugVectors.forEach((data) => {
-			this.ctx.strokeStyle = data.color;
-			this.ctx.beginPath();
-			this.ctx.moveTo(data.origin.x * Store.SCALE, this.canvas.height - (data.origin.y * Store.SCALE));
-			this.ctx.lineTo(data.origin.x * Store.SCALE + (data.x * Store.SCALE), this.canvas.height - (data.origin.y * Store.SCALE + (data.y * Store.SCALE)));
-			this.ctx.stroke();
-		});
+		Store._debugVectors.forEach(data => this.drawVector(data.origin, { x: data.x, y: data.y }, data.color));
 
 		Store._debugPts = [];
 		Store._debugVectors = [];
+	}
+
+	drawVector(origin, components, color = "red") {
+		const _origin = {
+			x: origin.x * Store.SCALE,
+			y: this.canvas.height - (origin.y * Store.SCALE)
+		}
+		const _components = {
+			x: components.x * Store.SCALE,
+			y: components.y * Store.SCALE
+		}
+
+		const ctx = this.ctx;
+		const arrowHeadLength = 0.2 * Store.SCALE; // Length of the arrowhead lines
+		const arrowHeadAngle = Math.PI / 6; // Angle between the arrowhead lines and the vector line
+	
+		// Calculate the angle of the vector
+		const angle = Math.atan2(_components.y, _components.x);
+	
+		// Calculate the points for the arrowhead
+		const arrowPoint1 = {
+			x: _components.x - arrowHeadLength * Math.cos(angle - arrowHeadAngle),
+			y: _components.y - arrowHeadLength * Math.sin(angle - arrowHeadAngle)
+		};
+		const arrowPoint2 = {
+			x: _components.x - arrowHeadLength * Math.cos(angle + arrowHeadAngle),
+			y: _components.y - arrowHeadLength * Math.sin(angle + arrowHeadAngle)
+		};
+
+		// Transform the arrowhead points to the canvas coordinate system
+		const arrowPoint1Canvas = {
+			x: _origin.x + arrowPoint1.x,
+			y: _origin.y - arrowPoint1.y
+		};
+		const arrowPoint2Canvas = {
+			x: _origin.x + arrowPoint2.x,
+			y: _origin.y - arrowPoint2.y
+		};
+
+		// Draw the main line
+		ctx.strokeStyle = color;
+		ctx.beginPath();
+		ctx.moveTo(_origin.x, _origin.y);
+		ctx.lineTo(_origin.x + _components.x, _origin.y - _components.y);
+		ctx.stroke();
+
+		// Draw the arrowhead
+		ctx.beginPath();
+		ctx.moveTo(_origin.x + _components.x, _origin.y - _components.y);
+		ctx.lineTo(arrowPoint1Canvas.x, arrowPoint1Canvas.y);
+		ctx.lineTo(arrowPoint2Canvas.x, arrowPoint2Canvas.y);
+		ctx.lineTo(_origin.x + _components.x, _origin.y - _components.y);
+		ctx.fillStyle = color;
+		ctx.fill();
 	}
 }

@@ -4,15 +4,6 @@ import { PolyType } from "../struct/enum.js";
 import Store from "./store.js";
 import Utils from "./utils.js";
 
-function getRandomColor() {
-	const letters = '0123456789ABCDEF';
-	let color = '#';
-	for (let i = 0; i < 6; i++) {
-	  color += letters[Math.floor(Math.random() * 16)];
-	}
-	return color;
-}
-
 export default class Resolver {
 	constructor() { }
 
@@ -20,6 +11,7 @@ export default class Resolver {
 	// Return the positions of the objects and the forces to apply
 	// TODO: Precision solver
 	// Use kinematics and the known net forces to backtrack and find the exact point and velocity of collision
+	// TODO: Overpenetration is not solved quite correctly, the impulse isn't strong enough to correct very fast or overly penetrating objects
 
 	// The polygon with the least overlap on one of the axis is the one whose edge is colliding. 
 	// The other point of contact is most likely a vertex of the other polygon, but may be an edge if perfectly aligned.
@@ -44,33 +36,34 @@ export default class Resolver {
 		const p2Max = polygon2._vertexCount - 1;
 
 		for (let i = 0; i < polygon1._vertexCount; i++) {
-			const vertex = polygon1.vertices.getAt(i);
-			const index = i === polygon1._vertexCount - 1 ? -1 : i;
+			const vertex1 = polygon1.vertices.getAt(i);
+			const vertex2 = polygon1.vertices.getAt((i === polygon1._vertexCount - 1) ? 0 : (i + 1));
 
 			// Get the normal of the edge
 			const normal = new Vector({
-				x: -(vertex.y - polygon1.vertices.getAt(index + 1).y),
-				y: (vertex.x - polygon1.vertices.getAt(index + 1).x)
+				x: -(vertex1.y - vertex2.y),
+				y: (vertex1.x - vertex2.x)
 			});
 
 			const offset = Vector.dot(
 				{
-					x: polygon1.position.x - polygon2.position.x,
-					y: polygon1.position.y - polygon2.position.y
+					x: polygon2.position.x - polygon1.position.x,
+					y: polygon2.position.y - polygon1.position.y
 				},
 				normal
 			);
 
+			const normalDotSelf = Vector.dot(normal, normal);
+
 			// Project the vertices of the polygons onto the normal
 			const proj1 = Utils.objSort(polygon1.vertices.map(v => ({
-				value: Utils.Round(Vector.dot(v, normal) + offset, 5),
+				value: Utils.Round(Vector.dot(v, normal) / normalDotSelf, 5),
 				id: v.id
 			})), "value");
 			const proj2 = Utils.objSort(polygon2.vertices.map(v => ({
-				value: Utils.Round(Vector.dot(v, normal), 5),
+				value: Utils.Round((Vector.dot(v, normal) + offset) / normalDotSelf, 5),
 				id: v.id
 			})), "value");
-
 
 			if (proj1[p1Max].value < proj2[0].value || proj1[0].value > proj2[p2Max].value) {
 				return false; // Early exit if there is a separating axis
@@ -95,8 +88,8 @@ export default class Resolver {
 						verticesOfContact.vertices = [
 							polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position),
 							polygon2.vertices.get(proj2[p2Max - 1].id).add(polygon2.position),
-							polygon1.vertices.get(proj1[0].id).add(polygon1.position),
-							polygon1.vertices.get(proj1[1].id).add(polygon1.position)
+							polygon1.vertices.get(proj1[0].id).add(structuredClone(polygon1.position)),
+							polygon1.vertices.get(proj1[1].id).add(structuredClone(polygon1.position))
 						];
 					} else {
 						verticesOfContact.type = 1; // vertex-edge collision
@@ -133,12 +126,12 @@ export default class Resolver {
 
 		// Same process for the second polygon
 		for (let i = 0; i < polygon2._vertexCount; i++) {
-			const vertex = polygon2.vertices.getAt(i);
-			const index = i === polygon1._vertexCount - 1 ? -1 : i;
+			const vertex1 = polygon2.vertices.getAt(i);
+			const vertex2 = polygon2.vertices.getAt((i === polygon1._vertexCount - 1) ? 0 : (i + 1));
 
 			const normal = new Vector({
-				x: -(vertex.y - polygon2.vertices.getAt(index + 1).y),
-				y: (vertex.x - polygon2.vertices.getAt(index + 1).x)
+				x: -(vertex1.y - vertex2.y),
+				y: (vertex1.x - vertex2.x)
 			});
 
 			const offset = Vector.dot(
@@ -149,12 +142,14 @@ export default class Resolver {
 				normal
 			);
 
+			const normalDotSelf = Vector.dot(normal, normal);
+
 			const proj1 = Utils.objSort(polygon1.vertices.map(v => ({
-				value: Utils.Round(Vector.dot(v, normal) + offset, 5),
+				value: Utils.Round((Vector.dot(v, normal) + offset) / normalDotSelf, 5),
 				id: v.id
 			})), "value");
 			const proj2 = Utils.objSort(polygon2.vertices.map(v => ({
-				value: Utils.Round(Vector.dot(v, normal), 5),
+				value: Utils.Round(Vector.dot(v, normal) / normalDotSelf, 5),
 				id: v.id
 			})), "value");
 
@@ -289,25 +284,6 @@ export default class Resolver {
 		const poly1PerpVector = normalizedPerp.scale(Vector.dot(relativeContact.polygon1, normalizedPerp));
 		const poly2PerpVector = normalizedPerp.scale(Vector.dot(relativeContact.polygon2, normalizedPerp));
 
-		// Store._debugVectors.push({
-		// 	x: poly1PerpVector.x,
-		// 	y: poly1PerpVector.y,
-		// 	origin: polygon1.position,
-		// 	color: "green",
-		// 	size: 5
-		// });
-
-		// Store._debugVectors.push({
-		// 	x: poly2PerpVector.x,
-		// 	y: poly2PerpVector.y,
-		// 	origin: polygon2.position,
-		// 	color: "green",
-		// 	size: 5
-		// });
-
-		// console.log("normalized vector", normalized);
-		// console.log("relative contact", relativeContact.polygon1, relativeContact.polygon2);
-		// console.log("Perpendiculars", poly1Perp, poly2Perp, "(poly1 is", polygon1.id, ", poly2 is", polygon2.id, ")");
 		const impulse =
 			Vector.dot(relativeVelocity, overlapNormal) /
 			(
@@ -339,10 +315,6 @@ export default class Resolver {
 			polygon1: polygon1.angularVelocity + poly1amChange,
 			polygon2: polygon2.angularVelocity - poly2amChange
 		};
-
-		// console.log("Moments of inertia:", polygon1.momentInertia, polygon2.momentInertia);
-		// console.log("poly2 angular impulse:", Vector.dot(poly2PerpVector, overlapNormal.scale(impulse)));
-		// console.log("Resulting angular velocities:", angularVelocities.polygon1, angularVelocities.polygon2);
 
 		return { resolution, linearVelocities, angularVelocities };
 	}

@@ -8,6 +8,7 @@ export default class Engine {
 	collisions = [];
 	deltaTime = 0;
 	stepDelta = 0;
+	resolutionMap = {}; // For step-separated collision resolution
 
 	#stepStart = 0;
 
@@ -23,10 +24,13 @@ export default class Engine {
 	step(deltaTime) {
 		this.#stepStart = performance.now();
 		this.deltaTime = deltaTime;
+		// this.applyCollisionResolution();
+		this.resolveCollisions();
 		this.addForces();
 		this.update();
 		this.partitionObjects();
 		this.collisionQueue();
+		// this.calculateCollisionResolution();
 		this.resolveCollisions();
 		this.stepDelta = performance.now() - this.#stepStart;
 	}
@@ -164,6 +168,43 @@ export default class Engine {
 			}
 		});
 		this.collisions = [];
+	}
+
+	// Resolves collisions but does not apply them. Called at the end of the physics step. 
+	// Less accurate. Really only for debugging.
+	calculateCollisionResolution() {
+		this.collisions.forEach(pair => {
+			if (pair[0].type === PolyType.STATIC && pair[1].type === PolyType.STATIC) return;
+			
+			const { resolution, linearVelocities, angularVelocities } = Resolver.resolve(pair[0], pair[1]);
+			if (resolution) {
+				this.resolutionMap[pair[0].id] = {
+					resolution: resolution.polygon1,
+					velocity: linearVelocities.polygon1,
+					angularVelocity: angularVelocities.polygon1
+				};
+				this.resolutionMap[pair[1].id] = {
+					resolution: resolution.polygon2,
+					velocity: linearVelocities.polygon2,
+					angularVelocity: angularVelocities.polygon2
+				};
+			}
+		});
+		this.collisions = [];
+	}
+
+	// Applies the collision resolutions calculated in the previous physics step. Called at the beginning of the physics step.
+	// Less accurate. Really only for debugging.
+	applyCollisionResolution() {
+		Object.keys(this.resolutionMap).forEach(id => {
+			const polygon = Store.dynamicPolygons.get(id);
+			if (!polygon) return;
+			const { resolution, velocity, angularVelocity } = this.resolutionMap[id];
+			polygon.resolve(resolution);
+			polygon.setVelocity(velocity);
+			polygon.setAngularVelocity(angularVelocity);
+		});
+		this.resolutionMap = {};
 	}
 
 	addForces() {

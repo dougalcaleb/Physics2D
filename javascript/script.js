@@ -95,7 +95,7 @@ Store.addPolygon(new Polygon({
 // 	rotation: -0.3,
 // }));
 
-
+// floor
 Store.addPolygon(new Polygon({
 	vertices: [
 		new Point(30, 0.5),
@@ -107,6 +107,7 @@ Store.addPolygon(new Polygon({
 	position: new Point(2, 2)
 }));
 
+// floating platform
 Store.addPolygon(new Polygon({
 	vertices: [
 		new Point(10, 0.5),
@@ -118,6 +119,7 @@ Store.addPolygon(new Polygon({
 	position: new Point(15, 8.5)
 }));
 
+// left wall
 Store.addPolygon(new Polygon({
 	vertices: [
 		new Point(0.5, 8),
@@ -129,6 +131,7 @@ Store.addPolygon(new Polygon({
 	position: new Point(2, 6.5)
 }));
 
+// right wall
 Store.addPolygon(new Polygon({
 	vertices: [
 		new Point(0.5, 8),
@@ -164,7 +167,7 @@ Store.addPolygon(new Polygon({
 // }));
 
 
-Store.polygons[0].addForce(new Vector(4, Math.PI / 2));
+Store.polygons.getAt(0).addForce(new Vector(4, Math.PI / 2));
 
 document.querySelector("#debug-play").addEventListener("click", () => {
 	Store.Clock.resume();
@@ -177,7 +180,7 @@ document.querySelector("#debug-step").addEventListener("click", () => {
 	Store.Clock.step(Store.Clock.pausedAt, false);
 });
 document.addEventListener("keydown", (event) => {
-	if (event.code === "Insert") {
+	if (event.code === "Insert" || event.code === "PageUp") {
 		Store.Clock.pausedAt += (1000 / 60);
 		Store.Clock.step(Store.Clock.pausedAt, false);
 	} else if (event.code === "Space") {

@@ -25,6 +25,11 @@ export default class Point {
 		return new Point(this.x + point.x, this.y + point.y);
 	}
 
+	_add(point) {
+		this.x += point.x;
+		this.y += point.y;
+	}
+
 	rotateInPlace(angle) {
 		const magnitude = Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
 		const currentAngle = Math.atan2(this.y, this.x);

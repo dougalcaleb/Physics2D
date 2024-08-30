@@ -13,6 +13,7 @@ export default class Style {
 		acceleration: "#0000ff",
 		misc: "#eb34ab",
 		text: "#e8e8e8",
-		textDark: "#4f4f4f"
+		textDark: "#4f4f4f",
+		scale: "slategray"
 	};
 }

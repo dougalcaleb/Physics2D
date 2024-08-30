@@ -2,11 +2,12 @@ import Renderer from "./render.js";
 import Engine from "./engine.js";
 import Clock from "./clock.js";
 import { PolyType } from "../struct/enum.js";
+import MappedArray from "../struct/mappedarray.js";
 
 export default class Store {
-	static polygons = [];
-	static dynamicPolygons = [];
-	static staticPolygons = [];
+	static polygons = new MappedArray([]);
+	static dynamicPolygons = new MappedArray([]);
+	static staticPolygons = new MappedArray	;
 	static sectors = {};
 	static sectorCount = {
 		x: null,
