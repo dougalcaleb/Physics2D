@@ -25,6 +25,53 @@ export default class Renderer {
 			this.canvas.width = this.width;
 			this.canvas.height = this.height;
 		});
+
+		let active = false;
+		let abortController = new AbortController();
+		document.querySelector("#debug-render").addEventListener("click", () => {
+			const coordHeight = 25;
+			const coordText = "yellow";
+			const mouseDistance = 10;
+			let dragStart = null;
+			let dragging = false;
+			if (active) {
+				abortController.abort();
+				active = false;
+			} else {
+				this.mouseEvent = document.addEventListener("mousemove", (moveEvent) => {
+					this.render();
+					let dragLength = dragging ? Number(Math.sqrt(Math.pow(moveEvent.clientX - dragStart.x, 2) + Math.pow(moveEvent.clientY - dragStart.y, 2)).toFixed(2)) : 0;
+					const text = `X: ${moveEvent.clientX}, Y: ${moveEvent.clientY}${dragging ? " Length: " + dragLength + `px (${(dragLength / Store.SCALE).toFixed(2)}m)` : ""}`;
+					if (moveEvent.clientY < coordHeight + mouseDistance) {
+						this.ctx.fillStyle = coordText;
+						this.ctx.font = "12px monospace";
+						this.ctx.fillText(text, moveEvent.clientX + 10, moveEvent.clientY + coordHeight + mouseDistance + 15);
+					} else {
+						this.ctx.fillStyle = coordText;
+						this.ctx.font = "12px monospace";
+						this.ctx.fillText(text, moveEvent.clientX + 10, moveEvent.clientY - coordHeight - mouseDistance + 15);
+					}
+					if (dragStart && dragging) {
+						this.ctx.strokeStyle = "red";
+						this.ctx.beginPath();
+						this.ctx.moveTo(dragStart.x, dragStart.y);
+						this.ctx.lineTo(moveEvent.clientX, moveEvent.clientY);
+						this.ctx.stroke();
+					}
+				}, { signal: abortController.signal });
+				this.canvas.addEventListener("mousedown", (downEvent) => {
+					dragStart = {
+						x: downEvent.clientX,
+						y: downEvent.clientY
+					};
+					dragging = true;
+				}, { signal: abortController.signal });
+				this.canvas.addEventListener("mouseup", (upEvent) => {
+					dragging = false;
+					dragStart = null;
+				}, { signal: abortController.signal });
+			}
+		});
 	}
 
 	render() {
@@ -110,13 +157,13 @@ export default class Renderer {
 			this.ctx.fill();
 		});
 
-		Store._debugVectors.forEach(data => this.drawVector(data.origin, { x: data.x, y: data.y }, data.color));
+		Store._debugVectors.forEach(data => this.drawVector(data.origin, { x: data.x, y: data.y }, data.color, data.head));
 
 		Store._debugPts = [];
 		Store._debugVectors = [];
 	}
 
-	drawVector(origin, components, color = "red") {
+	drawVector(origin, components, color = "red", head = true) {
 		const _origin = {
 			x: origin.x * Store.SCALE,
 			y: this.canvas.height - (origin.y * Store.SCALE)
@@ -161,12 +208,14 @@ export default class Renderer {
 		ctx.stroke();
 
 		// Draw the arrowhead
-		ctx.beginPath();
-		ctx.moveTo(_origin.x + _components.x, _origin.y - _components.y);
-		ctx.lineTo(arrowPoint1Canvas.x, arrowPoint1Canvas.y);
-		ctx.lineTo(arrowPoint2Canvas.x, arrowPoint2Canvas.y);
-		ctx.lineTo(_origin.x + _components.x, _origin.y - _components.y);
-		ctx.fillStyle = color;
-		ctx.fill();
+		if (head) {
+			ctx.beginPath();
+			ctx.moveTo(_origin.x + _components.x, _origin.y - _components.y);
+			ctx.lineTo(arrowPoint1Canvas.x, arrowPoint1Canvas.y);
+			ctx.lineTo(arrowPoint2Canvas.x, arrowPoint2Canvas.y);
+			ctx.lineTo(_origin.x + _components.x, _origin.y - _components.y);
+			ctx.fillStyle = color;
+			ctx.fill();
+		}
 	}
 }

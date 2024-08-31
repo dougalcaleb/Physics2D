@@ -31,3 +31,6 @@ canvas {
   font-family: monospace;
   color: white;
 }
+.debug-controls #debug-render {
+  margin-top: 5px;
+}

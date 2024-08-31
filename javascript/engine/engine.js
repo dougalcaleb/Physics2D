@@ -25,7 +25,6 @@ export default class Engine {
 		this.#stepStart = performance.now();
 		this.deltaTime = deltaTime;
 		// this.applyCollisionResolution();
-		this.resolveCollisions();
 		this.addForces();
 		this.update();
 		this.partitionObjects();

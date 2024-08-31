@@ -3,6 +3,7 @@ export default class Vector {
 	#angle = null;
 	#x = null;
 	#y = null;
+	#isSimple = true;
 	origin = { x: 0, y: 0 };
 
 	/**
@@ -14,12 +15,14 @@ export default class Vector {
 		if (args.length === 2) {
 			this.#angle = args[1];
 			this.magnitude = args[0];
+			this.#isSimple = false;
 		} else if (args.length === 1) {
 			this.#x = args[0].x;
 			this.#y = args[0].y;
 			if (!args[0].simple) {
 				this.#magnitude = Math.hypot(this.#x, this.#y);
 				this.#angle = Math.atan2(this.#y, this.#x);
+				this.#isSimple = false;
 			}
 			this.origin = args[0].origin || { x: 0, y: 0 };
 		} else {
@@ -88,6 +91,7 @@ export default class Vector {
 		this.#y += vector.y;
 		this.#magnitude = Math.hypot(this.#x, this.#y);
 		this.#angle = Math.atan2(this.#y, this.#x);
+		return this;
 	}
 
 	divide(scalar, simple = false) {
@@ -119,7 +123,10 @@ export default class Vector {
 	_scale(scalar) {
 		this.#x *= scalar;
 		this.#y *= scalar;
-		this.#magnitude = Math.hypot(this.#x, this.#y);
+		if (!this.#isSimple) {
+			this.#magnitude = Math.hypot(this.#x, this.#y);
+		}
+		return this;
 	}
 
 	/**
@@ -142,6 +149,7 @@ export default class Vector {
 		this.#x /= this.#magnitude;
 		this.#y /= this.#magnitude;
 		this.#magnitude = 1;
+		return this;
 	}
 
 	/**

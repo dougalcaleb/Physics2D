@@ -60,6 +60,7 @@ export default class Polygon {
 		this.restitution = options.restitution || 1;
 		this.angularDrag = options.angularDrag || 1;
 		this._vertexCount = this.vertices.length;
+		this.velocity = options.velocity ? { x: options.velocity.x, y: options.velocity.y} : { x: 0, y: 0 };
 	}
 	
 	addForce(forceVector) {
