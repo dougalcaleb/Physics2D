@@ -7,16 +7,8 @@ import Utils from "./utils.js";
 export default class Resolver {
 	constructor() { }
 
-	// OVERALL TODO:
-	// - Clean up the verticesOfContact object
-	// - Ensure that simple vectors are being used whenever possible
-	// - See if the very similar if-branched blocks can be consolidated
-
 	// Resolve collision by SAT
-	// Return the positions of the objects and the forces to apply
-	// TODO: Precision solver
-	// Use kinematics and the known net forces to backtrack and find the exact point and velocity of collision
-	// TODO: Overpenetration is not solved quite correctly, the impulse isn't strong enough to correct very fast or overly penetrating objects
+	// Return the position adjustments of the objects and the new velocities
 
 	// The polygon with the least overlap on one of the axis is the one whose edge is colliding. 
 	// The other point of contact is most likely a vertex of the other polygon, but may be an edge if perfectly aligned.
@@ -46,6 +38,7 @@ export default class Resolver {
 				y: (vertex1.x - vertex2.x)
 			})._normalize();
 
+			// Get the dot offset (makes the projection relative to the other polygon)
 			const offset = Vector.dot(
 				{
 					x: polygon2.position.x - polygon1.position.x,
@@ -76,48 +69,38 @@ export default class Resolver {
 					continue;
 				}
 
+				overlapNormal = normal;
+
+				// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
+				if (proj2[p2Max].value === proj2[p2Max - 1].value) {
+					collisionType = 2;
+					collisionOwner = null;
+					verticesOfContact = [
+						polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position),
+						polygon2.vertices.get(proj2[p2Max - 1].id).add(polygon2.position),
+						polygon1.vertices.get(proj1[0].id).add(polygon1.position),
+						polygon1.vertices.get(proj1[1].id).add(polygon1.position)
+					];
+				} else {
+					collisionType = 1; // vertex-edge collision
+					collisionOwner = 2; // The vertex belongs to polygon 2, since the normal is from polygon 1
+				}
+
+				// Ensure that we're getting the correct overlap based on which side of the projection each polygon is on
 				if (overlapP1MaxP2Min <= overlapP1MinP2Max) {
 					overlap = overlapP1MaxP2Min;
-					overlapNormal = normal;
-
-					// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
-					if (proj2[p2Max].value === proj2[p2Max - 1].value) {
-						collisionType = 2; // edge-edge collision
-						collisionOwner = null;
-						normalCorrection = 1;
-						verticesOfContact = [
-							polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position),
-							polygon2.vertices.get(proj2[p2Max - 1].id).add(polygon2.position),
-							polygon1.vertices.get(proj1[0].id).add(structuredClone(polygon1.position)),
-							polygon1.vertices.get(proj1[1].id).add(structuredClone(polygon1.position))
-						];
-					} else {
-						collisionType = 1; // vertex-edge collision
-						collisionOwner = 2; // The vertex belongs to polygon 2, since the normal is from polygon 1
-						normalCorrection = 1;
+					normalCorrection = 1;
+					
+					if (proj2[p2Max].value !== proj2[p2Max - 1].value) {
 						verticesOfContact = [
 							polygon2.vertices.get(proj2[0].id).add(polygon2.position)
 						];
 					}
 				} else {
 					overlap = overlapP1MinP2Max;
-					overlapNormal = normal;
-
-					// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
-					if (proj2[p2Max].value === proj2[p2Max - 1].value) {
-						collisionType = 2; // edge-edge collision
-						collisionOwner = null;
-						normalCorrection = -1;
-						verticesOfContact = [
-							polygon1.vertices.get(proj1[0].id).add(polygon1.position),
-							polygon1.vertices.get(proj1[1].id).add(polygon1.position),
-							polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position),
-							polygon2.vertices.get(proj2[p2Max - 1].id).add(polygon2.position)
-						];
-					} else {
-						collisionType = 1; // vertex-edge collision
-						collisionOwner = 2; // The vertex belongs to polygon 2, since the normal is from polygon 1
-						normalCorrection = -1;
+					normalCorrection = -1;
+					
+					if (proj2[p2Max].value !== proj2[p2Max - 1].value) {
 						verticesOfContact = [
 							polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position)
 						];
@@ -131,11 +114,13 @@ export default class Resolver {
 			const vertex1 = polygon2.vertices.getAt(i);
 			const vertex2 = polygon2.vertices.getAt((i === polygon1._vertexCount - 1) ? 0 : (i + 1));
 
+			// Get the normal of the edge
 			const normal = new Vector({
 				x: -(vertex1.y - vertex2.y),
 				y: (vertex1.x - vertex2.x)
 			})._normalize();
 
+			// Get the dot offset (makes the projection relative to the other polygon)
 			const offset = Vector.dot(
 				{
 					x: polygon1.position.x - polygon2.position.x,
@@ -144,6 +129,7 @@ export default class Resolver {
 				normal
 			);
 
+			// Project the vertices of the polygons onto the normal
 			const proj1 = Utils.objSort(polygon1.vertices.map(v => ({
 				value: Utils.Round((Vector.dot(v, normal) + offset), 5),
 				id: v.id
@@ -165,48 +151,38 @@ export default class Resolver {
 					continue;
 				}
 
+				overlapNormal = normal;
+
+				// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
+				if (proj1[p1Max].value === proj1[p1Max - 1].value) {
+					collisionType = 2;
+					collisionOwner = null;
+					verticesOfContact = [
+						polygon2.vertices.get(proj2[0].id).add(polygon2.position),
+						polygon2.vertices.get(proj2[1].id).add(polygon2.position),
+						polygon1.vertices.get(proj1[p1Max].id).add(polygon1.position),
+						polygon1.vertices.get(proj1[p1Max - 1].id).add(polygon1.position)
+					];
+				} else {
+					collisionType = 1; // vertex-edge collision
+					collisionOwner = 1; // The vertex belongs to polygon 1, since the normal is from polygon 2
+				}
+
+				// Ensure that we're getting the correct overlap based on which side of the projection each polygon is on
 				if (overlapP1MaxP2Min <= overlapP1MinP2Max) {
 					overlap = overlapP1MaxP2Min;
-					overlapNormal = normal;
+					normalCorrection = 1;
 
-					// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
-					if (proj1[p1Max].value === proj1[p1Max - 1].value) {
-						collisionType = 2; // edge-edge collision
-						collisionOwner = null;
-						normalCorrection = 1;
-						verticesOfContact = [
-							polygon2.vertices.get(proj2[0].id).add(polygon2.position),
-							polygon2.vertices.get(proj2[1].id).add(polygon2.position),
-							polygon1.vertices.get(proj1[p1Max].id).add(polygon1.position),
-							polygon1.vertices.get(proj1[p1Max - 1].id).add(polygon1.position)
-						];
-					} else {
-						collisionType = 1; // vertex-edge collision
-						collisionOwner = 1; // The vertex belongs to polygon 1, since the normal is from polygon 2
-						normalCorrection = 1;
+					if (proj1[p1Max].value !== proj1[p1Max - 1].value) {
 						verticesOfContact = [
 							polygon1.vertices.get(proj1[p1Max].id).add(polygon1.position)
 						];
 					}
 				} else {
 					overlap = overlapP1MinP2Max;
-					overlapNormal = normal;
+					normalCorrection = -1;
 
-					// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
-					if (proj1[p1Max].value === proj1[p1Max - 1].value) {
-						collisionType = 2; // edge-edge collision
-						collisionOwner = null;
-						normalCorrection = -1;
-						verticesOfContact = [
-							polygon1.vertices.get(proj1[0].id).add(polygon1.position),
-							polygon1.vertices.get(proj1[1].id).add(polygon1.position),
-							polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position),
-							polygon2.vertices.get(proj2[p2Max - 1].id).add(polygon2.position)
-						];
-					} else {
-						collisionType = 1; // vertex-edge collision
-						collisionOwner = 1; // The vertex belongs to polygon 1, since the normal is from polygon 2
-						normalCorrection = -1;
+					if (proj1[p1Max].value !== proj1[p1Max - 1].value) {
 						verticesOfContact = [
 							polygon1.vertices.get(proj1[0].id).add(polygon1.position)
 						];
