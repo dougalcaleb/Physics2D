@@ -9,7 +9,7 @@ export default class Vector {
 	/**
 	 * Vector class. Represents a 2D vector with x and y components.
 	 * @param {Object} args Object with vector components { x, y, origin?, simple? }
-	 * @param {...any} args Magnitude and angle [ magnitude, angle ]
+	 * @param {...Number} args Magnitude and angle [ magnitude, angle ]
 	 */
 	constructor(...args) {
 		if (args.length === 2) {
@@ -21,7 +21,6 @@ export default class Vector {
 			this.#y = args[0].y;
 			if (!args[0].simple) {
 				this.#magnitude = Math.hypot(this.#x, this.#y);
-				this.#angle = Math.atan2(this.#y, this.#x);
 				this.#isSimple = false;
 			}
 			this.origin = args[0].origin || { x: 0, y: 0 };
@@ -51,7 +50,12 @@ export default class Vector {
 		this.#angle = Math.atan2(this.#y, this.#x);
 	}
 
-	get angle() { return this.#angle; }
+	get angle() {
+		if (!this.#angle) {
+			this.#angle = Math.atan2(this.#y, this.#x);
+		}
+		return this.#angle;
+	}
 	set angle(value) {
 		this.#angle = value;
 		this.#x = this.#magnitude * Math.cos(this.#angle);
@@ -89,8 +93,10 @@ export default class Vector {
 	_add(vector) {
 		this.#x += vector.x;
 		this.#y += vector.y;
-		this.#magnitude = Math.hypot(this.#x, this.#y);
-		this.#angle = Math.atan2(this.#y, this.#x);
+		if (!this.#isSimple) {
+			this.#magnitude = Math.hypot(this.#x, this.#y);
+			this.#angle = Math.atan2(this.#y, this.#x);
+		}
 		return this;
 	}
 
