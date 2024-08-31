@@ -49,11 +49,11 @@ export default class Resolver {
 
 			// Project the vertices of the polygons onto the normal
 			const proj1 = Utils.objSort(polygon1.vertices.map(v => ({
-				value: Utils.Round(Vector.dot(v, normal), 5),
+				value: Utils.Round(Vector.dot(v, normal), 3),
 				id: v.id
 			})), "value");
 			const proj2 = Utils.objSort(polygon2.vertices.map(v => ({
-				value: Utils.Round((Vector.dot(v, normal) + offset), 5),
+				value: Utils.Round((Vector.dot(v, normal) + offset), 3),
 				id: v.id
 			})), "value");
 
@@ -131,11 +131,11 @@ export default class Resolver {
 
 			// Project the vertices of the polygons onto the normal
 			const proj1 = Utils.objSort(polygon1.vertices.map(v => ({
-				value: Utils.Round((Vector.dot(v, normal) + offset), 5),
+				value: Utils.Round((Vector.dot(v, normal) + offset), 3),
 				id: v.id
 			})), "value");
 			const proj2 = Utils.objSort(polygon2.vertices.map(v => ({
-				value: Utils.Round(Vector.dot(v, normal), 5),
+				value: Utils.Round(Vector.dot(v, normal), 3),
 				id: v.id
 			})), "value");
 
