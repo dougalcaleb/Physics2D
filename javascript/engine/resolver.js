@@ -21,17 +21,12 @@ export default class Resolver {
 	// The polygon with the least overlap on one of the axis is the one whose edge is colliding. 
 	// The other point of contact is most likely a vertex of the other polygon, but may be an edge if perfectly aligned.
 	static resolve(polygon1, polygon2) {
-		polygon1.debugVectors = [];
-		polygon2.debugVectors = [];
 		let overlap = Infinity;
 		let overlapNormal = null;
-		// TODO: clean this object up, it's pretty gross right now
-		let verticesOfContact = {
-			type: 1, 		// 1 = vertex-edge, 2 = edge-edge
-			poly: null,		// If the collision is type 1, this will be the polygon that the vertex belongs to
-			vertices: [],
-			correction: 1	// 1 or -1. If the vertex is on the other polygon, the resolution must be in the negative of the normal direction
-		};
+		let normalCorrection = 1;
+		let verticesOfContact = []; // 1 or -1. If the vertex is on the other polygon, the resolution must be in the negative of the normal direction
+		let collisionType = 1; 		// 1 = vertex-edge, 2 = edge-edge
+		let collisionOwner = null; 	// If the collision is type 1, this will be the polygon that the vertex belongs to
 		const pointOfCollision = new Point({ x: 0, y: 0 });
 		const resolution = {
 			polygon1: { x: 0, y: 0 },
@@ -73,57 +68,57 @@ export default class Resolver {
 				return false; // Early exit if there is a separating axis
 			} else {
 				// Find the minimum overlap
-				const overlapP1MinP2Max = Math.abs(proj1[p1Max].value - proj2[0].value);
-				const overlapP2MinP1Max = Math.abs(proj2[p2Max].value - proj1[0].value);
+				const overlapP1MaxP2Min = Math.abs(proj1[p1Max].value - proj2[0].value);
+				const overlapP1MinP2Max = Math.abs(proj2[p2Max].value - proj1[0].value);
 
 				// If both possible overlaps are greater than the current overlap, this axis is not the minimum separating axis. Skip the rest.
-				if (overlapP1MinP2Max > overlap && overlapP2MinP1Max > overlap) {
+				if (overlapP1MaxP2Min > overlap && overlapP1MinP2Max > overlap) {
 					continue;
 				}
 
-				if (overlapP1MinP2Max <= overlapP2MinP1Max) {
-					overlap = overlapP1MinP2Max;
+				if (overlapP1MaxP2Min <= overlapP1MinP2Max) {
+					overlap = overlapP1MaxP2Min;
 					overlapNormal = normal;
 
 					// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
 					if (proj2[p2Max].value === proj2[p2Max - 1].value) {
-						verticesOfContact.type = 2; // edge-edge collision
-						verticesOfContact.poly = null;
-						verticesOfContact.correction = 1;
-						verticesOfContact.vertices = [
+						collisionType = 2; // edge-edge collision
+						collisionOwner = null;
+						normalCorrection = 1;
+						verticesOfContact = [
 							polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position),
 							polygon2.vertices.get(proj2[p2Max - 1].id).add(polygon2.position),
 							polygon1.vertices.get(proj1[0].id).add(structuredClone(polygon1.position)),
 							polygon1.vertices.get(proj1[1].id).add(structuredClone(polygon1.position))
 						];
 					} else {
-						verticesOfContact.type = 1; // vertex-edge collision
-						verticesOfContact.poly = 2; // The vertex belongs to polygon 2, since the normal is from polygon 1
-						verticesOfContact.correction = 1;
-						verticesOfContact.vertices = [
+						collisionType = 1; // vertex-edge collision
+						collisionOwner = 2; // The vertex belongs to polygon 2, since the normal is from polygon 1
+						normalCorrection = 1;
+						verticesOfContact = [
 							polygon2.vertices.get(proj2[0].id).add(polygon2.position)
 						];
 					}
 				} else {
-					overlap = overlapP2MinP1Max;
+					overlap = overlapP1MinP2Max;
 					overlapNormal = normal;
 
 					// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
 					if (proj2[p2Max].value === proj2[p2Max - 1].value) {
-						verticesOfContact.type = 2; // edge-edge collision
-						verticesOfContact.poly = null;
-						verticesOfContact.correction = -1;
-						verticesOfContact.vertices = [
+						collisionType = 2; // edge-edge collision
+						collisionOwner = null;
+						normalCorrection = -1;
+						verticesOfContact = [
 							polygon1.vertices.get(proj1[0].id).add(polygon1.position),
 							polygon1.vertices.get(proj1[1].id).add(polygon1.position),
 							polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position),
 							polygon2.vertices.get(proj2[p2Max - 1].id).add(polygon2.position)
 						];
 					} else {
-						verticesOfContact.type = 1; // vertex-edge collision
-						verticesOfContact.poly = 2; // The vertex belongs to polygon 2, since the normal is from polygon 1
-						verticesOfContact.correction = -1;
-						verticesOfContact.vertices = [
+						collisionType = 1; // vertex-edge collision
+						collisionOwner = 2; // The vertex belongs to polygon 2, since the normal is from polygon 1
+						normalCorrection = -1;
+						verticesOfContact = [
 							polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position)
 						];
 					}
@@ -162,57 +157,57 @@ export default class Resolver {
 				return false; // Early exit if there is a separating axis
 			} else {
 				// Find the minimum overlap
-				const overlapP1MinP2Max = Math.abs(proj1[p1Max].value - proj2[0].value);
-				const overlapP2MinP1Max = Math.abs(proj2[p2Max].value - proj1[0].value);
+				const overlapP1MaxP2Min = Math.abs(proj1[p1Max].value - proj2[0].value);
+				const overlapP1MinP2Max = Math.abs(proj2[p2Max].value - proj1[0].value);
 
 				// If both possible overlaps are greater than the current overlap, this axis is not the minimum separating axis. Skip the rest.
-				if (overlapP1MinP2Max > overlap && overlapP2MinP1Max > overlap) {
+				if (overlapP1MaxP2Min > overlap && overlapP1MinP2Max > overlap) {
 					continue;
 				}
 
-				if (overlapP1MinP2Max <= overlapP2MinP1Max) {
-					overlap = overlapP1MinP2Max;
+				if (overlapP1MaxP2Min <= overlapP1MinP2Max) {
+					overlap = overlapP1MaxP2Min;
 					overlapNormal = normal;
 
 					// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
 					if (proj1[p1Max].value === proj1[p1Max - 1].value) {
-						verticesOfContact.type = 2; // edge-edge collision
-						verticesOfContact.poly = null;
-						verticesOfContact.correction = 1;
-						verticesOfContact.vertices = [
+						collisionType = 2; // edge-edge collision
+						collisionOwner = null;
+						normalCorrection = 1;
+						verticesOfContact = [
 							polygon2.vertices.get(proj2[0].id).add(polygon2.position),
 							polygon2.vertices.get(proj2[1].id).add(polygon2.position),
 							polygon1.vertices.get(proj1[p1Max].id).add(polygon1.position),
 							polygon1.vertices.get(proj1[p1Max - 1].id).add(polygon1.position)
 						];
 					} else {
-						verticesOfContact.type = 1; // vertex-edge collision
-						verticesOfContact.poly = 1; // The vertex belongs to polygon 1, since the normal is from polygon 2
-						verticesOfContact.correction = 1;
-						verticesOfContact.vertices = [
+						collisionType = 1; // vertex-edge collision
+						collisionOwner = 1; // The vertex belongs to polygon 1, since the normal is from polygon 2
+						normalCorrection = 1;
+						verticesOfContact = [
 							polygon1.vertices.get(proj1[p1Max].id).add(polygon1.position)
 						];
 					}
 				} else {
-					overlap = overlapP2MinP1Max;
+					overlap = overlapP1MinP2Max;
 					overlapNormal = normal;
 
 					// If the two max values of the other polygon's projection are equal, this is an edge-edge collision
 					if (proj1[p1Max].value === proj1[p1Max - 1].value) {
-						verticesOfContact.type = 2; // edge-edge collision
-						verticesOfContact.poly = null;
-						verticesOfContact.correction = -1;
-						verticesOfContact.vertices = [
+						collisionType = 2; // edge-edge collision
+						collisionOwner = null;
+						normalCorrection = -1;
+						verticesOfContact = [
 							polygon1.vertices.get(proj1[0].id).add(polygon1.position),
 							polygon1.vertices.get(proj1[1].id).add(polygon1.position),
 							polygon2.vertices.get(proj2[p2Max].id).add(polygon2.position),
 							polygon2.vertices.get(proj2[p2Max - 1].id).add(polygon2.position)
 						];
 					} else {
-						verticesOfContact.type = 1; // vertex-edge collision
-						verticesOfContact.poly = 1; // The vertex belongs to polygon 1, since the normal is from polygon 2
-						verticesOfContact.correction = -1;
-						verticesOfContact.vertices = [
+						collisionType = 1; // vertex-edge collision
+						collisionOwner = 1; // The vertex belongs to polygon 1, since the normal is from polygon 2
+						normalCorrection = -1;
+						verticesOfContact = [
 							polygon1.vertices.get(proj1[0].id).add(polygon1.position)
 						];
 					}
@@ -221,7 +216,7 @@ export default class Resolver {
 		}
 
 		// Correct the penetration
-		const resVector = overlapNormal.scale(overlap * verticesOfContact.correction);
+		const resVector = overlapNormal.scale(overlap * normalCorrection, true);
 
 		if (polygon1.type === PolyType.STATIC) {
 			resolution.polygon2.x = resVector.x;
@@ -237,16 +232,16 @@ export default class Resolver {
 		}
 
 		// Get the world point of contact
-		if (verticesOfContact.type === 1) {
+		if (collisionType === 1) {
 			// Vertex-edge collision - the point of contact is the vertex
-			pointOfCollision.x = verticesOfContact.vertices[0].x;
-			pointOfCollision.y = verticesOfContact.vertices[0].y;
+			pointOfCollision.x = verticesOfContact[0].x;
+			pointOfCollision.y = verticesOfContact[0].y;
 		} else {
 			// Edge-edge collision
 			// We know that all 4 vertices are in a straight (enough) line, and, as a simplification, the point of contact we want is the center of the two vertices in the middle
 			// Choose a reference point, find the relative projection of each vertex and sort them to find which two are the middle two
-			const refPoint = verticesOfContact.vertices[0];
-			const projections = Utils.objSort(verticesOfContact.vertices.map(v => ({
+			const refPoint = verticesOfContact[0];
+			const projections = Utils.objSort(verticesOfContact.map(v => ({
 				proj: Vector.dot(refPoint, v),
 				pos: v
 			})), "proj");
