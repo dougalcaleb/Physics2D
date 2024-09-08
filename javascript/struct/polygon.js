@@ -33,9 +33,7 @@ export default class Polygon {
 	get rotation() { return this.#rotation; }
 	set rotation(value) {
 		this.#rotation = value;
-		this.#originalVertices.forEach((v, i) => {
-			this.vertices.getAt(i).set(v.rotate(value));
-		});
+		this.vertices.forEach(v => v._rotate(value));
 	}
 
 	/**
@@ -48,7 +46,13 @@ export default class Polygon {
 		const polyVerts = Polygon.createPolygon(options.vertices);
 		polyVerts.pop();
 		this.position = new Point(options.position);
-		this.vertices = new MappedArray(polyVerts.map((v, i) => new Point({ ...v, id: i })));
+		this.vertices = new MappedArray(polyVerts.map((v, i) => new Point({
+			x: v.x,
+			y: v.y,
+			id: i,
+			distance: Math.hypot(v.x, v.y),
+			angle: Math.atan2(v.y, v.x)
+		})));
 		this.#originalVertices = this.vertices.map(v => new Point(v));
 		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Point.distance({x: 0, y: 0}, v)), 0);
 		this.type = options.type;

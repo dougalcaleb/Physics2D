@@ -1,6 +1,8 @@
 export default class Point {
 	x = 0;
 	y = 0;
+	distance = null;
+	angle = null;
 	id = null;
 	
 	constructor(...args) {
@@ -8,6 +10,8 @@ export default class Point {
 			this.x = args[0].x;
 			this.y = args[0].y;
 			this.id = args[0].id ?? null;
+			this.distance = args[0].distance ?? null;
+			this.angle = args[0].angle ?? null;
 		} else if (args.length === 2) {
 			this.x = args[0];
 			this.y = args[1];
@@ -30,20 +34,16 @@ export default class Point {
 		this.y += point.y;
 	}
 
-	rotateInPlace(angle) {
-		const magnitude = Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-		const currentAngle = Math.atan2(this.y, this.x);
-		this.x = magnitude * Math.cos(currentAngle + angle);
-		this.y = magnitude * Math.sin(currentAngle + angle);
+	rotate(angle) {
+		return {
+			x: this.distance * Math.cos(this.angle + angle),
+			y: this.distance * Math.sin(this.angle + angle)
+		}
 	}
 
-	rotate(angle) {
-		const magnitude = Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-		const currentAngle = Math.atan2(this.y, this.x);
-		return {
-			x: magnitude * Math.cos(currentAngle + angle),
-			y: magnitude * Math.sin(currentAngle + angle)
-		}
+	_rotate(angle) {
+		this.x = this.distance * Math.cos(this.angle + angle);
+		this.y = this.distance * Math.sin(this.angle + angle);
 	}
 
 	static distanceSqr(point1, point2) {
