@@ -1,7 +1,7 @@
 import Utils from "../engine/utils.js";
 import Point from "./point.js";
 import Vector from "./vector.js";
-import { PolyType, Force } from "./enum.js";
+import { PolygonType, Force } from "./enum.js";
 import MappedArray from "./mappedarray.js";
 import SimpleVector from "./simplevector.js";
 
@@ -22,11 +22,8 @@ export default class Polygon {
 	sector = null;
 	id = null;
 	
-	debugVectors = [];
-
 	_vertexCount = 0;
 
-	// Different types of force accumulated since the last physics update
 	_accumulatedForce = new SimpleVector();
 	_accumulatedAcceleration = new SimpleVector();
 	_accumulatedImpulse = new SimpleVector();
@@ -43,12 +40,19 @@ export default class Polygon {
 	 * Create a new polygon
 	 * @param {Object} options.vertices - An array of points representing the vertices of the polygon
 	 * @param {Object} options.position - The position of the polygon
-	 * @param {PolyType} options.type - The type of polygon (static or dynamic)
+	 * @param {PolygonType} options.type - The type of polygon (static or dynamic)
 	 */
 	constructor(options) {
+		if (!options) {
+			throw new Error("Must provide vertices to create a polygon");
+		}
+		if (!Object.keys(options).every(k => ["vertices", "position", "type", "mass", "rotation", "momentInertia", "restitution", "angularDrag", "velocity", "angularVelocity"].includes(k))) {
+			throw new Error("Unrecognized polygon option(s)");
+		}
+
 		const polyVerts = Polygon.createPolygon(options.vertices);
 		polyVerts.pop();
-		this.position = new Point(options.position);
+		this.position = new Point(options.position || { x: 0, y: 0 });
 		this.vertices = new MappedArray(polyVerts.map((v, i) => new Point({
 			x: v.x,
 			y: v.y,
@@ -59,7 +63,7 @@ export default class Polygon {
 		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Point.distance({x: 0, y: 0}, v)), 0);
 		this.type = options.type;
 		this.id = Utils.UUID();
-		this.mass = this.type === PolyType.DYNAMIC ? (options.mass || 1) : Infinity;
+		this.mass = this.type === PolygonType.DYNAMIC ? (options.mass || 1) : Infinity;
 		this.rotation = options.rotation || 0;
 		const pointMass = this.mass / this.vertices.length;
 		this.momentInertia = options.momentInertia || this.vertices.reduce((acc, v) => (acc + pointMass * (Point.distance(v, { x: 0, y: 0 }) ** 2)), 0);

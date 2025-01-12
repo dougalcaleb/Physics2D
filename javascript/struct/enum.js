@@ -1,4 +1,4 @@
-export class PolyType {
+export class PolygonType {
 	static DYNAMIC = 0;
 	static STATIC = 1;
 }

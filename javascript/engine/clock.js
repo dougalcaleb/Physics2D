@@ -15,7 +15,10 @@ export default class Clock {
 	#sinceLastAvg = 0;
 	#framerateOutput = null;
 
-	constructor(calculateFramerate = true) {
+	#env = null;
+
+	constructor(env, calculateFramerate = true) {
+		this.#env = env;
 		this.doFramerate = calculateFramerate;
 		this.step = this.step.bind(this);
 		if (this.doFramerate) {
@@ -24,8 +27,14 @@ export default class Clock {
 	}
 	
 	start() {
-		this._lastTick = performance.now();
-		window.requestAnimationFrame(this.step);
+		if (this.paused) {
+			this.paused = false;
+			this._lastTick = performance.now();
+			this.step(this._lastTick, true);
+		} else {
+			this._lastTick = performance.now();
+			window.requestAnimationFrame(this.step);
+		}
 	}
 
 	// todo:
@@ -60,13 +69,11 @@ export default class Clock {
 		this.pausedAt = performance.now();
 	}
 
-	resume() {
-		this.paused = false;
-		this._lastTick = performance.now();
-		this.step(this._lastTick, true);
+	subscribeAfter(callback) {
+		this._subscribers.push(callback);
 	}
 
-	subscribe(callback) {
-		this._subscribers.push(callback);
+	subscribeBefore(callback) {
+		this._subscribers.unshift(callback);
 	}
 }

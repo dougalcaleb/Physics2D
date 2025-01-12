@@ -1,11 +1,11 @@
 export default class Style {
 	constructor() { }
 	
-	static background = "#191919";
-	static vertex = "#ffffff";
-	static line = "#36A355";
-	static lineWidth = 2;
-	static vertexSize = 3;
+	// static background = "#191919";
+	// static vertex = "#ffffff";
+	// static line = "#36A355";
+	// static lineWidth = 2;
+	// static vertexSize = 3;
 	static debug = {
 		sector: "#111111",
 		force: "#ff0000",
