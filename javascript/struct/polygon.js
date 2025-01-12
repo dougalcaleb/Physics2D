@@ -3,12 +3,13 @@ import Point from "./point.js";
 import Vector from "./vector.js";
 import { PolyType, Force } from "./enum.js";
 import MappedArray from "./mappedarray.js";
+import SimpleVector from "./simplevector.js";
 
 export default class Polygon {
-	vertices = [];
-	position = new Point({ x: 0, y: 0 });
-	velocity = { x: 0, y: 0 };
-	acceleration = { x: 0, y: 0 };
+	vertices = new MappedArray();
+	position = new Point();
+	velocity = new SimpleVector();
+	acceleration = new SimpleVector();
 	#rotation = 0;
 	angularVelocity = 0;
 	angularDrag = 0;
@@ -65,6 +66,10 @@ export default class Polygon {
 		this.restitution = options.restitution || 1;
 		this.angularDrag = options.angularDrag || 1;
 		this._vertexCount = this.vertices.length;
+		this.velocity = options.velocity ? new SimpleVector({ x: options.velocity.x, y: options.velocity.y }) : new SimpleVector();
+		this.angularVelocity = options.angularVelocity || 0;
+	}
+	
 	/**
 	 * Add a force to the polygon
 	 * @param {Vector} forceVector - The force vector, including direction and magnitude
@@ -144,11 +149,26 @@ export default class Polygon {
 		this._accumulatedVelocity.reset();
 		this._accumulatedTorque = 0;
 	}
+
+	/**
+	 * Set this polygon's linear velocity
+	 * @param {object | Vector} velocity Vector or object with x, y components
+	 */
 	setVelocity(velocity) {
+		if (!(velocity instanceof SimpleVector)) {
+			velocity = new SimpleVector(velocity);
+		}
 		this.velocity = velocity;
 	}
 
+	/**
+	 * Set this polygon's angular velocity
+	 * @param {number} angularVelocity Rotation in radians per second
+	 */
 	setAngularVelocity(angularVelocity) {
+		if (typeof angularVelocity !== "number") {
+			throw new Error("Angular velocity must be a number");
+		}
 		this.angularVelocity = angularVelocity;
 	}
 

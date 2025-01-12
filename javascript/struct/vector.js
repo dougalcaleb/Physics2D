@@ -1,32 +1,29 @@
+import SimpleVector from "./simplevector.js";
+
 export default class Vector {
 	#magnitude = null;
 	#angle = null;
 	#x = null;
 	#y = null;
-	#isSimple = true;
 	origin = { x: 0, y: 0 };
 
 	/**
-	 * Vector class. Represents a 2D vector with x and y components.
-	 * @param {Object} args Object with vector components { x, y, origin?, simple? }
-	 * @param {...Number} args Magnitude and angle [ magnitude, angle ]
+	 * Represents a 2D vector with x and y components, magnitude, and angle.
+	 * @param {object} components Object with vector components (either { x, y } or { magnitude, angle })
+	 * @param {object=} origin Origin of the vector
 	 */
-	constructor(...args) {
-		if (args.length === 2) {
-			this.#angle = args[1];
-			this.magnitude = args[0];
-			this.#isSimple = false;
-		} else if (args.length === 1) {
-			this.#x = args[0].x;
-			this.#y = args[0].y;
-			if (!args[0].simple) {
-				this.#magnitude = Math.hypot(this.#x, this.#y);
-				this.#isSimple = false;
-			}
-			this.origin = args[0].origin || { x: 0, y: 0 };
+	constructor(components, origin = null) {
+		if (components.x && components.y) {
+			this.#x = components.x;
+			this.#y = components.y;
+		} else if (components.magnitude && components.angle) {
+			this.#angle = components.angle;
+			this.magnitude = components.magnitude;
 		} else {
-			throw new Error("Invalid number of arguments");
+			throw new Error("Invalid components");
 		}
+
+		this.origin = origin || { x: 0, y: 0 };
 	}
 
 	get magnitude() { return this.#magnitude; }
@@ -64,6 +61,7 @@ export default class Vector {
 
 	/**
 	 * Set this vector to be a 0 vector
+	 * @returns {undefined}
 	 */
 	reset() {
 		this.#x = 0;
@@ -75,10 +73,9 @@ export default class Vector {
 	/**
 	 * Returns a new vector that is the sum of this vector and the given vector
 	 * @param {Vector} vector A vector (or object with an x and y component)
-	 * @param {Boolean} simple Whether to return a simple vector or a full vector with magnitude and angle
-	 * @returns {Vector} A new vector that is the sum of this vector and the passed vector
+	 * @returns {Vector} A new vector that is the sum of this vector and the given vector
 	 */
-	add(vector, simple = false) {
+	add(vector) {
 		return new Vector({
 			x: this.#x + vector.x,
 			y: this.#y + vector.y,
@@ -89,73 +86,108 @@ export default class Vector {
 	/**
 	 * Modifies this vector to be the sum of itself and the given vector
 	 * @param {Vector} vector A vector (or object with an x and y component)
+	 * @returns {Vector} This vector, modified to be the sum of itself and the given vector
 	 */
 	_add(vector) {
 		this.#x += vector.x;
 		this.#y += vector.y;
-		if (!this.#isSimple) {
-			this.#magnitude = Math.hypot(this.#x, this.#y);
-			this.#angle = Math.atan2(this.#y, this.#x);
-		}
+		this.#magnitude = Math.hypot(this.#x, this.#y);
+		this.#angle = Math.atan2(this.#y, this.#x);
 		return this;
-	}
-
-	divide(scalar, simple = false) {
-		return new Vector({
-			x: this.#x / scalar,
-			y: this.#y / scalar,
-			simple
-		});
 	}
 
 	/**
 	 * Returns a new vector that is the this vector scaled by the given scalar
 	 * @param {Number} scalar A scalar value to multiply the vector by
-	 * @param {Boolean} simple Whether to return a simple vector or a full vector with magnitude and angle
-	 * @returns {Vector} A new vector that is the sum of this vector and the passed vector
+	 * @returns {Vector} A new vector that is the sum of this vector and the given vector
 	 */
-	scale(scalar, simple = false) {
+	scale(scalar) {
 		return new Vector({
 			x: this.#x * scalar,
-			y: this.#y * scalar,
-			simple
+			y: this.#y * scalar
 		});
 	}
 
 	/**
 	 * Scales this vector by the given scalar
-	 * @param {Number} vector A vector (or object with an x and y component)
+	 * @param {float} vector A vector (or object with an x and y component)
+	 * @returns {Vector} This vector, modified to be scaled by the given scalar
 	 */
 	_scale(scalar) {
 		this.#x *= scalar;
 		this.#y *= scalar;
-		if (!this.#isSimple) {
-			this.#magnitude = Math.hypot(this.#x, this.#y);
-		}
+		this.#magnitude = Math.hypot(this.#x, this.#y);
 		return this;
 	}
 
 	/**
 	 * Returns a unit vector based off of the components of this vector
-	 * @param {Boolean} simple Whether to return a simple vector or a full vector with magnitude and angle
 	 * @returns {Vector} A new vector that is this vector with a magnitude of 1
 	 */
-	normalize(simple) {
+	normalize() {
 		return new Vector({
-			x: this.#x / this.#magnitude,
-			y: this.#y / this.#magnitude,
-			simple
+			x: this.#x / this.#magnitude || 0,
+			y: this.#y / this.#magnitude || 0
 		});
 	}
 
 	/**
 	 * Normalizes this vector to have a magnitude of 1
+	 * @returns {Vector} This vector, modified to have a magnitude of 1
 	 */
 	_normalize() {
-		this.#x /= this.#magnitude;
-		this.#y /= this.#magnitude;
-		this.#magnitude = 1;
+		if (this.#magnitude) {
+			this.#x /= this.#magnitude;
+			this.#y /= this.#magnitude;
+			this.#magnitude = 1;
+		}
 		return this;
+	}
+
+	/**
+	 * Projects this vector onto another vector
+	 * @param {Vector} vector The vector to project this vector onto
+	 * @returns {Vector} This vector, modified to be the projection of itself onto the given vector
+	 */
+	_project(vector) {
+		const dotBoth = (this.x * vector.x) + (this.y * vector.y);
+		const dotSelf = (vector.x * vector.x) + (vector.y * vector.y);
+		if (!dotSelf) {
+			this._scale(0);
+		} else {
+			this._scale(dotBoth / dotSelf);
+		}
+		return this;
+	}
+
+	/**
+	 * Returns the perpendicular vector to this vector
+	 * @returns {Vector} A new vector that is perpendicular to this vector
+	 */
+	perpendicular() {
+		return new Vector({
+			x: -this.y,
+			y: this.x
+		});
+	}
+
+	/**
+	 * Makes this vector perpendicular to its original direction
+	 * @returns {Vector} This vector, modified to be perpendicular to its original direction
+	 */
+	_perpendicular() {
+		const temp = this.#x;
+		this.#x = -this.#y;
+		this.#y = temp;
+		return this;
+	}
+
+	/**
+	 * Creates a simplified version of this vector (no magnitude or angle)
+	 * @returns {SimpleVector} A simple vector with the same components as this vector
+	 */
+	simple() {
+		return new SimpleVector({ x: this.#x, y: this.#y });
 	}
 
 	/**

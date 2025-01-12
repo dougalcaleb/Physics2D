@@ -3,6 +3,7 @@ import Point from "../struct/point.js";
 import { PolyType } from "../struct/enum.js";
 import Store from "./store.js";
 import Utils from "./utils.js";
+import SimpleVector from "../struct/simplevector.js";
 
 export default class Resolver {
 	constructor() { }
@@ -12,17 +13,17 @@ export default class Resolver {
 
 	// The polygon with the least overlap on one of the axis is the one whose edge is colliding. 
 	// The other point of contact is most likely a vertex of the other polygon, but may be an edge if perfectly aligned.
-	static resolve(polygon1, polygon2) {
+	static resolve(polygon1, polygon2, deltaTime) {
 		let overlap = Infinity;
 		let overlapNormal = null;
 		let normalCorrection = 1;
 		let verticesOfContact = []; // 1 or -1. If the vertex is on the other polygon, the resolution must be in the negative of the normal direction
 		let collisionType = 1; 		// 1 = vertex-edge, 2 = edge-edge
 		let collisionOwner = null; 	// If the collision is type 1, this will be the polygon that the vertex belongs to
-		const pointOfCollision = new Point({ x: 0, y: 0 });
+		const pointOfCollision = new Point();
 		const resolution = {
-			polygon1: { x: 0, y: 0 },
-			polygon2: { x: 0, y: 0 }
+			polygon1: new SimpleVector(),
+			polygon2: new SimpleVector()
 		};
 
 		const p1Max = polygon1._vertexCount - 1;
@@ -33,7 +34,7 @@ export default class Resolver {
 			const vertex2 = polygon1.vertices.getAt((i === polygon1._vertexCount - 1) ? 0 : (i + 1));
 
 			// Get the normal of the edge
-			const normal = new Vector({
+			const normal = new SimpleVector({
 				x: -(vertex1.y - vertex2.y),
 				y: (vertex1.x - vertex2.x)
 			})._normalize();
@@ -115,7 +116,7 @@ export default class Resolver {
 			const vertex2 = polygon2.vertices.getAt((i === polygon1._vertexCount - 1) ? 0 : (i + 1));
 
 			// Get the normal of the edge
-			const normal = new Vector({
+			const normal = new SimpleVector({
 				x: -(vertex1.y - vertex2.y),
 				y: (vertex1.x - vertex2.x)
 			})._normalize();
@@ -193,18 +194,39 @@ export default class Resolver {
 
 		// Correct the penetration
 		const resVector = overlapNormal.scale(overlap * normalCorrection, true);
+		const resolutionVectors = {
+			polygon1: {},
+			polygon2: {}
+		};
 
 		if (polygon1.type === PolyType.STATIC) {
 			resolution.polygon2.x = resVector.x;
 			resolution.polygon2.y = resVector.y;
+			resolutionVectors.polygon1 = new SimpleVector();
+			resolutionVectors.polygon2 = resVector;
 		} else if (polygon2.type === PolyType.STATIC) {
 			resolution.polygon1.x = resVector.x;
 			resolution.polygon1.y = resVector.y;
+			resolutionVectors.polygon1 = resVector;
+			resolutionVectors.polygon2 = new SimpleVector();
 		} else {
 			resolution.polygon1.x = -resVector.x / 2;
 			resolution.polygon1.y = -resVector.y / 2;
 			resolution.polygon2.x = resVector.x / 2;
 			resolution.polygon2.y = resVector.y / 2;
+			resolutionVectors.polygon1 = resVector.scale(-0.5, true);
+			resolutionVectors.polygon2 = resVector.scale(0.5, true);
+		}
+
+		const resolvedPositions = {
+			polygon1: {
+				x: polygon1.position.x + resolution.polygon1.x,
+				y: polygon1.position.y + resolution.polygon1.y
+			},
+			polygon2: {
+				x: polygon2.position.x + resolution.polygon2.x,
+				y: polygon2.position.y + resolution.polygon2.y
+			}
 		}
 
 		// Get the world point of contact
@@ -225,30 +247,42 @@ export default class Resolver {
 			pointOfCollision.y = (projections[1].pos.y + projections[2].pos.y + resolution.polygon1.y + resolution.polygon2.y) / 2;
 		}
 
+		const correctedVelocities = {
+			polygon1: {
+				x: (polygon1.velocity.x - polygon1.acceleration.x * deltaTime),
+				y: (polygon1.velocity.y - polygon1.acceleration.y * deltaTime),
+			},
+			polygon2: {
+				x: (polygon2.velocity.x - polygon2.acceleration.x * deltaTime),
+				y: (polygon2.velocity.y - polygon2.acceleration.y * deltaTime),
+			},
+		};
+
+		let velocitiesToUse = overlap >= 0.002
+			? correctedVelocities
+			: { polygon1: polygon1.velocity, polygon2: polygon2.velocity };
+
 		// Calculate resulting velocities
 		// https://chrishecker.com/Rigid_Body_Dynamics#:~:text=Physics%2C%20Part%203%3A%20Collision%20Response
-		const relativeVelocity = new Vector({
-			x: polygon1.velocity.x - polygon2.velocity.x,
-			y: polygon1.velocity.y - polygon2.velocity.y
+		const relativeVelocity = new SimpleVector({
+			x: velocitiesToUse.polygon1.x - velocitiesToUse.polygon2.x,
+			y: velocitiesToUse.polygon1.y - velocitiesToUse.polygon2.y
 		});
 		relativeVelocity._scale(-(1 + (polygon1.restitution * polygon2.restitution)));
 		const relativeContact = {
-			polygon1: new Vector({
-				x: pointOfCollision.x - polygon1.position.x,
-				y: pointOfCollision.y - polygon1.position.y,
-				simple: true
+			polygon1: new SimpleVector({
+				x: pointOfCollision.x - resolvedPositions.polygon1.x,
+				y: pointOfCollision.y - resolvedPositions.polygon1.y
 			}),
-			polygon2: new Vector({
-				x: pointOfCollision.x - polygon2.position.x,
-				y: pointOfCollision.y - polygon2.position.y,
-				simple: true
+			polygon2: new SimpleVector({
+				x: pointOfCollision.x - resolvedPositions.polygon2.x,
+				y: pointOfCollision.y - resolvedPositions.polygon2.y
 			})
 		};
 
-		const normalizedPerp = new Vector({
+		const normalizedPerp = new SimpleVector({
 			x: overlapNormal.y,
-			y: -overlapNormal.x,
-			simple: true
+			y: -overlapNormal.x
 		});
 
 		const poly1PerpVector = normalizedPerp.scale(Vector.dot(relativeContact.polygon1, normalizedPerp), true);
@@ -265,12 +299,12 @@ export default class Resolver {
 		const scaledImpulseNormalP2 = overlapNormal.scale(impulse / polygon2.mass, true);
 		const linearVelocities = {
 			polygon1: {
-				x: polygon1.velocity.x + scaledImpulseNormalP1.x,
-				y: polygon1.velocity.y + scaledImpulseNormalP1.y
+				x: velocitiesToUse.polygon1.x + scaledImpulseNormalP1.x,
+				y: velocitiesToUse.polygon1.y + scaledImpulseNormalP1.y
 			},
 			polygon2: {
-				x: polygon2.velocity.x - scaledImpulseNormalP2.x,
-				y: polygon2.velocity.y - scaledImpulseNormalP2.y
+				x: velocitiesToUse.polygon2.x - scaledImpulseNormalP2.x,
+				y: velocitiesToUse.polygon2.y - scaledImpulseNormalP2.y
 			}
 		};
 
@@ -289,16 +323,6 @@ export default class Resolver {
 			polygon2: polygon2.angularVelocity - poly2amChange
 		};
 
-		return { resolution, linearVelocities, angularVelocities };
-	}
-
-	static addForce(magnitude, angle) { 
-		// Add a force through the center of mass
-		// Return the velocity
-	}
-	
-	static addTorque(magnitude, direction) {
-		// Add a torque through the center of mass
-		// Return the angular velocity
+		return { resolution, resolutionVectors, linearVelocities, angularVelocities };
 	}
 }
