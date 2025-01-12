@@ -1,7 +1,7 @@
 import Resolver from "./resolver.js";
 import Store from "./store.js";
 import Sector from "../struct/sector.js";
-import { Angle, PolyType } from "../struct/enum.js";
+import { Angle, Force, PolyType } from "../struct/enum.js";
 import Vector from "../struct/vector.js";
 
 export default class Engine {
@@ -210,7 +210,13 @@ export default class Engine {
 
 	addForces() {
 		Store.dynamicPolygons.forEach(polygon => {
-			polygon.addForce(new Vector(polygon.mass * Store.GRAVITY, Angle.DOWN));
+			polygon.addForce(
+				new Vector({
+					magnitude: Store.GRAVITY,
+					angle: Angle.DOWN
+				}),
+				Force.ACCELERATION
+			);
 		});
 	}
 

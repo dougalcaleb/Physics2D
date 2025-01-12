@@ -9,3 +9,10 @@ export class Angle {
 	static LEFT = Math.PI;
 	static RIGHT = 0;
 }
+
+export class Force {
+	static FORCE = 0;
+	static ACCELERATION = 1;
+	static IMPULSE = 2;
+	static VELOCITY = 3;
+}

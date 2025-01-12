@@ -1,7 +1,7 @@
 import Utils from "../engine/utils.js";
 import Point from "./point.js";
 import Vector from "./vector.js";
-import { PolyType } from "./enum.js";
+import { PolyType, Force } from "./enum.js";
 import MappedArray from "./mappedarray.js";
 
 export default class Polygon {
@@ -23,12 +23,14 @@ export default class Polygon {
 	
 	debugVectors = [];
 
+	_vertexCount = 0;
 
-	_vertexCount = 0;	
-	_netForce = new Vector(0, 0);
-	_lastForce = new Vector(0, 0);
-
-	#originalVertices = [];
+	// Different types of force accumulated since the last physics update
+	_accumulatedForce = new SimpleVector();
+	_accumulatedAcceleration = new SimpleVector();
+	_accumulatedImpulse = new SimpleVector();
+	_accumulatedVelocity = new SimpleVector();
+	_accumulatedTorque = 0;
 
 	get rotation() { return this.#rotation; }
 	set rotation(value) {
@@ -53,7 +55,6 @@ export default class Polygon {
 			distance: Math.hypot(v.x, v.y),
 			angle: Math.atan2(v.y, v.x)
 		})));
-		this.#originalVertices = this.vertices.map(v => new Point(v));
 		this.maxSize = this.vertices.reduce((max, v) => Math.max(max, Point.distance({x: 0, y: 0}, v)), 0);
 		this.type = options.type;
 		this.id = Utils.UUID();
@@ -64,30 +65,85 @@ export default class Polygon {
 		this.restitution = options.restitution || 1;
 		this.angularDrag = options.angularDrag || 1;
 		this._vertexCount = this.vertices.length;
-		this.velocity = options.velocity ? { x: options.velocity.x, y: options.velocity.y} : { x: 0, y: 0 };
-	}
-	
-	addForce(forceVector) {
-		this._netForce._add(forceVector);
-		this._lastForce = forceVector;
+	/**
+	 * Add a force to the polygon
+	 * @param {Vector} forceVector - The force vector, including direction and magnitude
+	 * @param {Vector} forceOrigin - Origin of the force vector, relative to the origin of the polygon
+	 */
+	addForce(forceVector, forceType = Force.FORCE, forceOrigin = null) {
+		if (forceOrigin) {
+			const throughCM = Vector.project(
+				forceVector,
+				new Vector({
+					x: forceOrigin.x,
+					y: forceOrigin.y,
+					simple: true
+				})
+			);
+			
+			switch (forceType) {
+				case Force.FORCE:
+					this._accumulatedForce._add(throughCM._scale(1 / this.mass));
+					break;
+				case Force.ACCELERATION:
+					this._accumulatedAcceleration._add(throughCM);
+					return;
+				case Force.IMPULSE:
+					this._accumulatedImpulse._add(throughCM._scale(1 / this.mass));
+					break;				
+				case Force.VELOCITY:
+					this._accumulatedVelocity._add(throughCM);
+					break;
+			}
+			
+			const torqueVector = new Vector({
+				x: forceOrigin.y,
+				y: -forceOrigin.x
+			})._normalize()._scale(forceVector.magnitude);
+			this.addTorque(Math.sign(Vector.dot(forceOrigin, forceVector)) * torqueVector.magnitude);
+		} else {
+			switch (forceType) {
+				case Force.FORCE:
+					this._accumulatedForce._add(forceVector._scale(1 / this.mass));
+					break;
+				case Force.ACCELERATION:
+					this._accumulatedAcceleration._add(forceVector);
+					return;
+				case Force.IMPULSE:
+					this._accumulatedImpulse._add(forceVector._scale(1 / this.mass));
+					break;				
+				case Force.VELOCITY:
+					this._accumulatedVelocity._add(forceVector);
+					break;
+			}
+		}
 	}
 
-	addTorque(magnitude, direction) {
+	addTorque(magnitude) {
 
 	}
 
 	update(deltaTime) {
-		this.acceleration.x = (this._netForce.x / this.mass);
-		this.acceleration.y = (this._netForce.y / this.mass);
-		this.velocity.x += this.acceleration.x * deltaTime;
-		this.velocity.y += this.acceleration.y * deltaTime;
-		this.position._add({ x: this.velocity.x * deltaTime, y: this.velocity.y * deltaTime });
-		this.rotation += this.angularVelocity * deltaTime;
-		this.angularVelocity -= this.angularDrag * this.angularVelocity * deltaTime;
-		
-		this._netForce.reset();
-	}
+		this.acceleration._add(this._accumulatedForce);
+		this.acceleration._add(this._accumulatedAcceleration);
 
+		this.velocity._add(this.acceleration._scale(deltaTime));
+		this.velocity._add(this._accumulatedImpulse);
+		this.velocity._add(this._accumulatedVelocity);
+
+		this.position._add(this.velocity.scale(deltaTime));
+
+		this.angularVelocity -= this.angularDrag * this.angularVelocity * deltaTime;
+		this.angularVelocity += this._accumulatedTorque * deltaTime;
+
+		this.rotation += this.angularVelocity * deltaTime;
+		
+		this._accumulatedForce.reset();
+		this._accumulatedAcceleration.reset();
+		this._accumulatedImpulse.reset();
+		this._accumulatedVelocity.reset();
+		this._accumulatedTorque = 0;
+	}
 	setVelocity(velocity) {
 		this.velocity = velocity;
 	}
