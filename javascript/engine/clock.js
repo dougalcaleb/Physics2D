@@ -28,6 +28,9 @@ export default class Clock {
 		window.requestAnimationFrame(this.step);
 	}
 
+	// todo:
+	// - on completed mode (runs next step ASAP, regardless of window framerate)
+	// - fixed physics step mode (run physics at a fixed rate, render at window framerate)
 	step(timestamp, cont = true) {
 		this._frame++;
 		this.delta = (timestamp - this._lastTick) / 1000;

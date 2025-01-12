@@ -3,7 +3,7 @@ export default class Style {
 	
 	static background = "#191919";
 	static vertex = "#ffffff";
-	static line = "#e8e8e8";
+	static line = "#36A355";
 	static lineWidth = 2;
 	static vertexSize = 3;
 	static debug = {

@@ -30,42 +30,32 @@ Store.addPolygon(new Polygon({
 		new Point(-1, -1)
 	],
 	type: PolyType.DYNAMIC,
-	position: new Point(7.5, 4),
-	restitution: 0.5,
-	velocity: { x: 3, y: 0 },
+	position: new Point(7.5, 9),
+	restitution: 0.1,
+	// velocity: { x: 3, y: 0 },
 	// velocity: { x: 0, y: 50 },
 	// angularDrag: 110,
+	// angularVelocity: 4,
 	// rotation: Math.PI / 4
 	rotation: 1.1,
 	mass: 15,
 }));
 
-Store.addPolygon(new Polygon({
-	vertices: [
-		new Point(5, 0.5),
-		new Point(5, -0.5),
-		new Point(-5, 0.5),
-		new Point(-5, -0.5)
-	],
-	type: PolyType.DYNAMIC,
-	position: new Point(10, 12),
-	restitution: 0.8,
-	// angularDrag: 110,
-	rotation: -0.1,
-	mass: 300
-}));
 
-Store.addPolygon(new Polygon({
-	vertices: [
-		new Point(0.8, 1.4),
-		new Point(0.4, -1.1),
-		new Point(-1, 1),
-		new Point(-2, -0.2)
-	],
-	type: PolyType.DYNAMIC,
-	position: new Point(6, 10),
-	mass: 15
-}));
+// Store.addPolygon(new Polygon({
+// 	vertices: [
+// 		new Point(5, 0.5),
+// 		new Point(5, -0.5),
+// 		new Point(-5, 0.5),
+// 		new Point(-5, -0.5)
+// 	],
+// 	type: PolyType.DYNAMIC,
+// 	position: new Point(10, 12),
+// 	restitution: 0.8,
+// 	// angularDrag: 110,
+// 	rotation: -0.1,
+// 	mass: 300
+// }));
 
 // Store.addPolygon(new Polygon({
 // 	vertices: [
@@ -75,7 +65,19 @@ Store.addPolygon(new Polygon({
 // 		new Point(-2, -0.2)
 // 	],
 // 	type: PolyType.DYNAMIC,
-// 	position: new Point(25, 5)
+// 	position: new Point(6, 10),
+// 	mass: 15
+// }));
+
+// Store.addPolygon(new Polygon({
+// 	vertices: [
+// 		new Point(0.8, 1.4),
+// 		new Point(0.4, -1.1),
+// 		new Point(-1, 1),
+// 		new Point(-2, -0.2)
+// 	],
+// 	type: PolyType.DYNAMIC,
+// 	position: new Point(15, 10)
 // }));
 
 // Store.addPolygon(new Polygon({
@@ -186,18 +188,18 @@ Store.addPolygon(new Polygon({
 
 // Store.addPolygon(new Polygon({
 // 	vertices: [
-// 		new Point(0.8, 1.4),
+// 		new Point(0.8,  0.5),
 // 		new Point(0.4, -1.1),
 // 		new Point(-1, 1),
-// 		new Point(-2, -0.2)
+// 		new Point(-2, -0.9)
 // 	],
 // 	type: PolyType.DYNAMIC,
-// 	position: new Point(26, 25),
+// 	position: new Point(8, 10),
 // 	rotation: Math.PI + 1.2
 // }));
 
 
-Store.polygons.getAt(0).addForce(new Vector(4, Math.PI / 2));
+// Store.polygons.getAt(0).addForce(new Vector(4, Math.PI / 2));
 
 document.querySelector("#debug-play").addEventListener("click", () => {
 	Store.Clock.resume();
@@ -225,3 +227,10 @@ document.addEventListener("keydown", (event) => {
 
 Store.Renderer.render();
 Store.Clock.pause();
+// Store.Clock.subscribe(() => {
+// 	if (Store.Clock._frame === 175) {
+// 		Store.Clock.pause();
+// 	}
+// });
+
+globalThis.Store = Store;

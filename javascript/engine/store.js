@@ -5,9 +5,9 @@ import { PolyType } from "../struct/enum.js";
 import MappedArray from "../struct/mappedarray.js";
 
 export default class Store {
-	static polygons = new MappedArray([]);
-	static dynamicPolygons = new MappedArray([]);
-	static staticPolygons = new MappedArray	;
+	static polygons = new MappedArray();
+	static dynamicPolygons = new MappedArray();
+	static staticPolygons = new MappedArray();
 	static sectors = {};
 	static sectorCount = {
 		x: null,
