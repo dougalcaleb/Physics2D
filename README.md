@@ -11,15 +11,15 @@ import Physics2D from "physics2d"
 import { Point, Polygon, PolygonType } from "physics2d"
 
 const Scene = new Physics2D({
-	canvas: HTMLElement,		// Reference to DOM Canvas
-	scale: Number,				// Number of pixels that represent 1 meter in the simulation
-	gravity: Number,			// Gravity scale
-	sceneX: Number,				// Width of canvas
-	sceneY: Number,				// Height of canvas
-	backgroundColor: String,	// Canvas background color (can be hex, rgba, hsl)
-	lineColor: String,			// Border color for polygons
-	fillColor: String,			// Fill color for polygons
-	lineWidth: Number,			// Border width for polygons
+	canvas: HTMLElement,        // Reference to DOM Canvas
+	scale: Number,              // Number of pixels that represent 1 meter in the simulation
+	gravity: Number,            // Gravity scale
+	sceneX: Number,             // Width of canvas
+	sceneY: Number,             // Height of canvas
+	backgroundColor: String,    // Canvas background color (can be hex, rgba, hsl)
+	lineColor: String,          // Border color for polygons
+	fillColor: String,          // Fill color for polygons
+	lineWidth: Number,          // Border width for polygons
 });
 
 // Note that every instance of Point() can alternatively be a simple object with x and y keys
