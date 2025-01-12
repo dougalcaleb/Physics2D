@@ -517,8 +517,8 @@ export default class Engine {
 			Vector.dot(relativeVelocity, overlapNormal) /
 			(
 				Vector.dot(overlapNormal, overlapNormal.scale((1 / polygon1.mass) + (1 / polygon2.mass), true)) +
-				Vector.dot(poly1PerpVector, overlapNormal) ** 2 / polygon1.momentInertia +
-				Vector.dot(poly2PerpVector, overlapNormal) ** 2 / polygon2.momentInertia
+				Vector.dot(poly1PerpVector, overlapNormal) ** 2 / polygon1.rotationalInertia +
+				Vector.dot(poly2PerpVector, overlapNormal) ** 2 / polygon2.rotationalInertia
 			);
 		const scaledImpulseNormalP1 = overlapNormal.scale(impulse / polygon1.mass, true);
 		const scaledImpulseNormalP2 = overlapNormal.scale(impulse / polygon2.mass, true);
@@ -537,11 +537,11 @@ export default class Engine {
 		const poly1amChange = -Vector.dot({
 			x: poly1PerpVector.y,
 			y: -poly1PerpVector.x
-		}, scaledNormal) / polygon1.momentInertia;
+		}, scaledNormal) / polygon1.rotationalInertia;
 		const poly2amChange = -Vector.dot({
 			x: poly2PerpVector.y,
 			y: -poly2PerpVector.x
-		}, scaledNormal) / polygon2.momentInertia;
+		}, scaledNormal) / polygon2.rotationalInertia;
 
 		const angularVelocities = {
 			polygon1: polygon1.angularVelocity + poly1amChange,

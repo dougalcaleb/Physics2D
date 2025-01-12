@@ -15,7 +15,7 @@ export default class Polygon {
 	angularDrag = 0;
 	mass = 1;
 	restitution = 1;
-	momentInertia = 1;
+	rotationalInertia = 1;
 	type = null;
 	active = true;
 	maxSize = 0;
@@ -46,7 +46,7 @@ export default class Polygon {
 		if (!options) {
 			throw new Error("Must provide vertices to create a polygon");
 		}
-		if (!Object.keys(options).every(k => ["vertices", "position", "type", "mass", "rotation", "momentInertia", "restitution", "angularDrag", "velocity", "angularVelocity"].includes(k))) {
+		if (!Object.keys(options).every(k => ["vertices", "position", "type", "mass", "rotation", "rotationalInertia", "restitution", "angularDrag", "velocity", "angularVelocity"].includes(k))) {
 			throw new Error("Unrecognized polygon option(s)");
 		}
 
@@ -66,7 +66,7 @@ export default class Polygon {
 		this.mass = this.type === PolygonType.DYNAMIC ? (options.mass || 1) : Infinity;
 		this.rotation = options.rotation || 0;
 		const pointMass = this.mass / this.vertices.length;
-		this.momentInertia = options.momentInertia || this.vertices.reduce((acc, v) => (acc + pointMass * (Point.distance(v, { x: 0, y: 0 }) ** 2)), 0);
+		this.rotationalInertia = options.rotationalInertia || this.vertices.reduce((acc, v) => (acc + pointMass * (Point.distance(v, { x: 0, y: 0 }) ** 2)), 0);
 		this.restitution = options.restitution || 1;
 		this.angularDrag = options.angularDrag || 1;
 		this._vertexCount = this.vertices.length;
