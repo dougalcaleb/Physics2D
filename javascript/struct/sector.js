@@ -1,10 +1,12 @@
+import MappedArray from "./mappedarray.js";
+
 export default class Sector {
 	x = null;
 	y = null;
 	height = null;
 	width = null;
 	children = {};
-	childList = [];
+	childList = new MappedArray();
 	count = 0;
 
 	constructor(x, y, height, width) {
@@ -17,7 +19,7 @@ export default class Sector {
 	removeChild(polyID) {
 		if (!this.children[polyID]) return;
 		delete this.children[polyID];
-		this.childList.filterInPlace(polygon => polygon.id !== polyID);
+		this.childList.remove(polyID);
 		this.count--;
 	}
 	

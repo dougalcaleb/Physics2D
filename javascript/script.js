@@ -5,19 +5,6 @@ import { PolyType } from "./struct/enum.js";
 import Vector from "./struct/vector.js";
 import Utils from "./engine/utils.js";
 
-Array.prototype.filterInPlace = function (filter) {
-	let i, j;
-	for (i = 0, j = 0; i < this.length; ++i) {
-		if (filter(this[i])) {
-			this[j] = this[i];
-			++j;
-		}
-	}
-	while (j < this.length) {
-		this.pop();
-	}
-};
-
 Store.SCALE = 60;
 
 Store.init();

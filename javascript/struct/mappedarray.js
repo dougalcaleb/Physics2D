@@ -80,4 +80,8 @@ export default class MappedArray {
 	reduce(callback, initialValue) {
 		return this.#collection.reduce(callback, initialValue);
 	}
+
+	slice(start, end) {
+		return this.#collection.slice(start, end);
+	}
 }
